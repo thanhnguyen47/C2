@@ -1,7 +1,4 @@
-venv/
 .vscode/
-# temporary bytecode files  
+.env
+.venv
 __pycache__/
-# *.py[cod]
-# *.pyo
-# *.pyd

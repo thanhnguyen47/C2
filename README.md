@@ -25,6 +25,7 @@ C2/
 |- templates/
     |- index.html
 |- uploads
+|- .env
 ```
 ## setup
 
@@ -84,7 +85,14 @@ uvicorn
 psycopg2
 ```
 
-+ we need to install these packages
++ using virtual environment to isolate the packages we will install for this project. Make sure that we choose global python interpreter (ctrl + shift + p)
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
++ we need to install these packages for this project
 ```bash
 pip install -r requirements.txt
 ```
