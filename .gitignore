@@ -1,0 +1,7 @@
+venv/
+.vscode/
+# temporary bytecode files  
+__pycache__/
+# *.py[cod]
+# *.pyo
+# *.pyd
