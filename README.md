@@ -103,3 +103,8 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+## Work flow: 
+
+```text
+request --> middleware1 (check access_token) --> routes + database (handle request) --> middleware2 (add secure headers to response) --> response
+```

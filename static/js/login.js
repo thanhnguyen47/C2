@@ -43,21 +43,25 @@ document.addEventListener("DOMContentLoaded", () => {
     // Xử lý submit form login
     loginForm.addEventListener("submit", (e) => {
         e.preventDefault()
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
+        const username = document.getElementById("username");
+        const password = document.getElementById("password");
 
         fetch("/login", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({ username, password })
+            body: new URLSearchParams({ username: username.value, password: password.value })
         })
-        .then(response => response.json())
-        .then(data => {
-            // console.log(data.message)
-            document.location="/"
+        .then(response => {
+            if (response.ok){
+                document.location="/dashboard"
+            }
+            else {
+                username.value=""
+                password.value=""
+            }
         })
         .catch(error => {
-            console.log(error)
+            console.log("error: ", error)
         })
     });
 });

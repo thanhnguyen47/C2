@@ -1,5 +1,6 @@
 import bcrypt
-from database.dbmain import PEPPER, connection_pool, SECRET_KEY, ALGORITHM
+from database.dbmain import connection_pool
+from config import PEPPER, SECRET_KEY, ALGORITHM
 from datetime import datetime, timedelta
 import jwt
 
