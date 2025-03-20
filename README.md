@@ -87,6 +87,8 @@ bcrypt # hash
 secrets # generate secure random string
 python-dotenv # read .env variables
 jinja2 # render html
+python-multipart
+pyjwt
 ```
 
 + using virtual environment to isolate the packages we will install for this project. Make sure that we choose global python interpreter (ctrl + shift + p)
