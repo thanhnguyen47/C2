@@ -4,3 +4,6 @@ psycopg2
 bcrypt
 secrets
 python-dotenv
+jinja2
+python-multipart
+pyjwt

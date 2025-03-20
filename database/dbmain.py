@@ -1,27 +1,41 @@
 # import the library to run Postgres instance
-import psycopg2
+# import psycopg2
+from psycopg2 import pool #https://github.com/psycopg/psycopg2/issues/582
+from dotenv import load_dotenv
+import os
 
-DB_NAME = 'c2_db'
-DB_USER = 'c2_user'
-DB_PASSWD = 'thanh'
-DB_HOST = 'localhost'
-DB_PORT = '5432'
+load_dotenv()
+DB_NAME=os.getenv('DB_NAME')
+DB_USER=os.getenv('DB_USER')
+DB_PASSWD = os.getenv('DB_PASSWD')
+DB_HOST=os.getenv('DB_HOST')
+DB_PORT=os.getenv('DB_PORT')
+PEPPER = os.getenv('PEPPER')
+SECRET_KEY = os.getenv('SECRET_KEY')
+ALGORITHM = os.getenv('ALGORITHM')
 
-try:
-    # establish a new connection
-    conn = psycopg2.connect(
-        database=DB_NAME,
-        user=DB_USER,
-        password = DB_PASSWD,
-        host=DB_HOST,
-        port=DB_PORT
+# establish a new connection
+connection_pool = pool.SimpleConnectionPool(
+    1, 20,
+    database=DB_NAME,
+    user=DB_USER,
+    password=DB_PASSWD,
+    host=DB_HOST,
+    port=DB_PORT
+)
+
+
+def init_db():
+    conn = connection_pool.getconn()
+    # using cursor function to execute postgres's commands
+    cur = conn.cursor()
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS c2_users (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(50) UNIQUE NOT NULL,
+        hashed_passwd VARCHAR(255) NOT NULL
     )
-    print('DB connected succesfully')
-except:
-    print('DB connected fail')
-# using cursor function to execute postgres's commands
-# cur = conn.cursor()
-
-# # commit queries auto
-# conn.set_session(autocommit=True)
-
+    """)
+    conn.commit()
+    connection_pool.putconn(conn)

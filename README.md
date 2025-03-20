@@ -3,7 +3,7 @@
 ## tech stack
 + framework: fastapi (async web framework)
 + websocket: in fastapi
-+ server: uvicorn (asgi server for fastapi)
++ server: uvicorn (asgi - Asynchronous Server Gateway Interface, server for fastapi)
 + database: portgresql (chat history, data of victims, ...)
 + driver: psycopg2 (connect between python and database)
 + frontend: html/javascript + bootstrap
@@ -82,7 +82,11 @@ if it's oke, we go to the next step
 ```text
 fastapi
 uvicorn
-psycopg2
+psycopg2 # connect postgresql
+bcrypt # hash
+secrets # generate secure random string
+python-dotenv # read .env variables
+jinja2 # render html
 ```
 
 + using virtual environment to isolate the packages we will install for this project. Make sure that we choose global python interpreter (ctrl + shift + p)
