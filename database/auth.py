@@ -6,13 +6,13 @@ import jwt
 
 def hash_passwd(passwd):
     salt = bcrypt.gensalt(rounds=15)
-    passwd_with_pepper = passwd + PEPPER
-    hashed_passwd = bcrypt.hashpw(passwd_with_pepper.encode(), salt)
+    passwd_with_pepper = passwd.encode() + bytes.fromhex(PEPPER)
+    hashed_passwd = bcrypt.hashpw(passwd_with_pepper, salt)
     return hashed_passwd.decode()
 
 def verify_passwd(passwd, hashed_passwd):
-    passwd_with_pepper = passwd + PEPPER
-    return bcrypt.checkpw(passwd_with_pepper.encode(), hashed_passwd.encode())
+    passwd_with_pepper = passwd.encode() + bytes.fromhex(PEPPER)
+    return bcrypt.checkpw(passwd_with_pepper, hashed_passwd.encode())
 
 def authenticate_user(username, passwd):
     conn = connection_pool.getconn()
@@ -37,12 +37,12 @@ def generate_access_token(username):
     to_encode = {
         "sub": username, "exp": expire 
     }
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, bytes.fromhex(SECRET_KEY), algorithm=ALGORITHM)
     return encoded_jwt
 
 def verify_access_token(access_token):
     try:
-        payload = jwt.decode(access_token, SECRET_KEY, algorithms=ALGORITHM)
+        payload = jwt.decode(access_token, bytes.fromhex(SECRET_KEY), algorithms=ALGORITHM)
         username = payload.get("sub")
         if username is None:
             return False

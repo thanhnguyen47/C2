@@ -1,12 +1,13 @@
 import uvicorn
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from database.dbmain import init_db
 from middlewares import check_access_token, add_security_headers
 from routes.auth import auth_router
 from routes.dashboard import dashboard_router
+
 app = FastAPI()
 init_db()
 
