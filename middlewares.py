@@ -4,7 +4,7 @@ from database.auth import verify_access_token
 # middleware: check access_token before run into api
 async def check_access_token(request: Request, call_next):
     # ignore /login and /static, ...
-    if request.url.path in ["/login", "/"] or request.url.path.startswith("/static"):
+    if request.url.path in ["/login", "/"] or request.url.path.startswith("/static") or request.url.path.startswith("/api/v1"):
         return await call_next(request)
     try:
         token = request.cookies.get("access_token")

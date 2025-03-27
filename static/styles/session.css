@@ -1,0 +1,39 @@
+.cmd-section {
+    height: 500px;
+    position: relative;
+    overflow-y: auto;
+    padding-right: 10px;
+    scroll-behavior: smooth;
+}
+
+/* .cmd-history {
+    overflow-y: auto;
+    max-height: 440px;
+    padding-right: 10px;
+} */
+.cmd-message {
+    font-family: 'Courier New', Courier, monospace; /*cmd fonts*/
+}
+.cmd-section::-webkit-scrollbar {
+    width: 10px;
+}
+.cmd-section::-webkit-scrollbar-track {
+    background: #000;
+}
+.cmd-section::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+.cmd-section::-webkit-scrollbar-thumb:hover {
+    background: #777;
+}
+
+.session-details {
+    height: 500px;
+    overflow-y: auto;
+}
+
+.btn-action {
+    width: 140px;
+    height: 40px;
+}

@@ -94,3 +94,4 @@ def add_user(username, passwd):
     finally:
         cur.close()
         connection_pool.putconn(conn)
+
