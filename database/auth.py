@@ -1,5 +1,5 @@
 import bcrypt
-from database.dbmain import connection_pool
+from database.dbmain import get_connection_pool
 from config import PEPPER, SECRET_KEY, ALGORITHM
 from datetime import datetime, timedelta
 import jwt
@@ -14,23 +14,18 @@ def verify_passwd(passwd, hashed_passwd):
     passwd_with_pepper = passwd.encode() + bytes.fromhex(PEPPER)
     return bcrypt.checkpw(passwd_with_pepper, hashed_passwd.encode())
 
-def authenticate_user(username, passwd):
-    conn = connection_pool.getconn()
-    try:
-        cur = conn.cursor()
-        cur.execute('''
-            SELECT * FROM c2_users WHERE username= %s
-    ''',(username,)) # tuple
-        
-        user = cur.fetchone()
-        if not user or not verify_passwd(passwd, user[2]):
+async def authenticate_user(username, passwd):
+    async with (await get_connection_pool()).acquire() as conn:
+        try:
+            user = await conn.fetchrow('''
+                SELECT * FROM c2_users WHERE username= $1
+            ''', username)
+            
+            if not user or not verify_passwd(passwd, user["hashed_passwd"]):
+                return False
+            return True
+        except Exception as e:
             return False
-        return True
-    except Exception as e:
-        return False
-    finally:
-        cur.close()
-        connection_pool.putconn(conn)
 
 def generate_access_token(username):
     expire = datetime.utcnow() + timedelta(seconds=60*60*24*3) # expired after 3 days
@@ -50,48 +45,30 @@ def verify_access_token(access_token):
     except jwt.ExpiredSignatureError:
         return False
 
-def get_current_user(username):
-    conn = connection_pool.getconn()
-    try:
-        cur = conn.cursor()
-        cur.execute('''
-            SELECT * FROM c2_users WHERE username= %s
-    ''',(username,)) # tuple
-        
-        user = cur.fetchone()
-        return user
-    except Exception as e:
-        return None
-    finally:
-        cur.close()
-        connection_pool.putconn(conn)
+async def get_current_user(username):
+    async with await (get_connection_pool()).acquire() as conn:
+        try:
+            user = await conn.fetchrow('''
+                SELECT * FROM c2_users WHERE username= $1
+            ''', username) # tuple
+            return user
+        except Exception as e:
+            return None
 
-def add_user(username, passwd):
+async def add_user(username, passwd):
     # check empty input
     if not username or not passwd:
         return False
     
-    conn = connection_pool.getconn()
-    try:
-        cur = conn.cursor()
-        # check existed username
-        cur.execute('''
-            SELECT * FROM c2_users WHERE username= %s
-    ''',(username,))
-        user = cur.fetchone()
-        if user:
+    async with (await get_connection_pool()).acquire() as conn:
+        try:    
+            hashed_passwd = hash_passwd(passwd)
+            await conn.execute("""
+                INSERT INTO c2_users (username, hashed_passwd) 
+                VALUES ($1, $2)
+                ON CONFLICT (username) DO NOTHING
+            """, username, hashed_passwd) 
+            return True
+        except Exception as e:
             return False
-            
-        hashed_passwd = hash_passwd(passwd)
-        cur.execute('''
-            INSERT INTO c2_users (username, hashed_passwd) VALUES (%s,  %s)
-    ''', (username, hashed_passwd)) 
-        conn.commit()
-        return True
-    except Exception as e:
-        conn.rollback() # restore if error
-        return False
-    finally:
-        cur.close()
-        connection_pool.putconn(conn)
 

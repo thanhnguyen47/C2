@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-psycopg2
+asyncpg
 bcrypt
 secrets
 python-dotenv

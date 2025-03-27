@@ -82,7 +82,7 @@ if it's oke, we go to the next step
 ```text
 fastapi
 uvicorn
-psycopg2 # connect postgresql
+asyncpg # connect postgresql, using async query
 bcrypt # hash
 secrets # generate secure random string
 python-dotenv # read .env variables
@@ -91,7 +91,7 @@ python-multipart
 pyjwt
 ```
 
-+ using virtual environment to isolate the packages we will install for this project. Make sure that we choose global python interpreter (ctrl + shift + p)
++ using virtual environment to isolate the packages we will install for this project. Make sure that we choose .venv python interpreter (ctrl + shift + p)
 
 ```bash
 python3 -m venv .venv

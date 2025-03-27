@@ -21,7 +21,7 @@ async def login_page(request: Request):
 
 @router.post('/login')
 async def login(response: Response, username=Form(...), password=Form(...)):
-    user = authenticate_user(username, password)
+    user = await authenticate_user(username, password)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     

@@ -28,7 +28,7 @@ async def receive_sysinfo(request: Request, token: str, details: SystemDetails):
     ram = details_dict['ram']
     disk = details_dict['disk']
 
-    if (create_new_bot(token, username, hostname, ip, os, cpu, gpu, ram, disk)):
+    if (await create_new_bot(token, username, hostname, ip, os, cpu, gpu, ram, disk)):
         print("create new bot success!")
     else:
         print("create new bot fail!")
