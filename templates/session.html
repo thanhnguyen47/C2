@@ -28,8 +28,8 @@
             <!-- main content -->
             <div class="col-md-10">
                 <div class="p-1">
-                    <h2>INTERACT 0</h2>
-                    <p>online</p>
+                    <h2>INTERACT {{ bot.token }}</h2>
+                    <p>{{ bot.status }}</p>
                 </div>
 
                 <div class="row">
@@ -41,6 +41,23 @@
                                 <div class="cmd-message text-success">C:\Users\victim0> test cmd</div>
                                 <div class="cmd-message text-white">
                                     result here<br>
+                                    dir result here<br>
+                                    dir result here<br>
+                                    dir result here<br>
+                                    dir result here<br>
+                                    dir result here<br>
+                                    dir result here<br>
+                                    dir result here<br>
+                                    dir result here<br>
+                                    dir result here<br>
+                                    dir result here<br>
+                                    dir result here<br>
+                                    dir result here<br>
+                                    dir result here<br>
+                                    dir result here<br>
+                                    dir result here<br>
+                                    dir result here<br>
+                                    dir result here<br>
                                     dir result here<br>
                                     dir result here
                                 </div>
@@ -55,9 +72,13 @@
                     <div class="col-md-4">
                         <div class="bg-white p-3 shadow session-details rounded">
                             <h5>Session Details</h5>
-                            <p><strong>Username: </strong>PC-windows\victim</p>
-                            <p><strong>Hostname: </strong>PC-windows</p>
-                            <p><strong>IP: </strong>0.0.0.0</p>
+                            <p><strong>Username: </strong>{{ bot_info.username }}</p>
+                            <p><strong>Hostname: </strong>{{ bot_info.hostname }}</p>
+                            <p><strong>IP: </strong>{{ bot_info.ip }}</p>
+                            <p><strong>OS: </strong>{{ bot_info.os }}</p>
+                            <p><strong>CPU: </strong>{{ bot_info.cpu }}</p>
+                            <p><strong>GPU: </strong>{{ bot_info.gpu }}</p>
+                            <p><strong>Disk: </strong>{{ bot_info.disk }}</p>
                             <p><strong>Process ID: </strong>10jqk</p>
                         </div>
                     </div>

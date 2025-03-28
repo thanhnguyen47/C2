@@ -29,14 +29,22 @@ async def create_new_bot(token: str, username, hostname, ip, os, cpu, gpu, ram, 
             print(f"Exception: {str(e)}")
             return False
 
-# async def get_bot(token: str):
-#     async with connection_pool.acquire() as conn:
-#         try:
-#             bot = conn.fetchrow("""
-#             SELECT * FROM bots WHERE token = %s
-#             """, (token,))
-#             if not bot:
-#                 return None
-#             bot_id = bot["id"]
-#         except Exception as e:
-#             pass
+async def get_bot(token: str):
+    async with (await get_connection_pool()).acquire() as conn:
+        try:
+            bot = await conn.fetchrow("""
+            SELECT * FROM bots WHERE token = $1
+            """, token)
+            return bot
+        except Exception as e:
+            return None
+
+async def get_bot_info(bot_id):
+    async with (await get_connection_pool()).acquire() as conn:
+        try:
+            bot_info = await conn.fetchrow("""
+            SELECT * FROM bot_info WHERE bot_id = $1
+            """, bot_id)
+            return bot_info
+        except Exception as e:
+            return None
