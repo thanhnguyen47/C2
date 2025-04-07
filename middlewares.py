@@ -1,4 +1,5 @@
-from fastapi import Request, status, Response
+from fastapi import Request, status
+from fastapi.responses import Response, RedirectResponse
 from database.auth import verify_access_token
 
 # middleware: check access_token before run into api
@@ -9,7 +10,7 @@ async def check_access_token(request: Request, call_next):
     try:
         token = request.cookies.get("access_token")
         if not token or not verify_access_token(token):
-            response = Response(status_code=status.HTTP_302_FOUND)
+            response = RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
             response.set_cookie(
                 key="access_token",
                 value="",
@@ -18,11 +19,12 @@ async def check_access_token(request: Request, call_next):
                 max_age=0,
                 samesite="lax"
             )
-            response.headers["Location"] = "/login"
             return response
+        # after all check, run into api
+        return await call_next(request)
     except:
         # delete cookie if verify is error
-        response = Response(status_code=status.HTTP_302_FOUND)
+        response = RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
         response.set_cookie(
             key="access_token",
             value="",
@@ -31,10 +33,8 @@ async def check_access_token(request: Request, call_next):
             max_age=0,
             samesite="lax"
         )
-        response.headers["Location"] = "/login"
         return response
-    # after all check, run into api
-    return await call_next(request)
+    
 
 # middleware: add secure headers after handle request in apis
 async def add_security_headers(request: Request, call_next):

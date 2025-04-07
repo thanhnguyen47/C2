@@ -62,9 +62,10 @@
                                     dir result here
                                 </div>
                              </div>
-                            <form class="cmd-input d-flex align-items-center" method="post" action="#">
+                            <form id="command-form" class="cmd-input d-flex align-items-center" bot-token="{{bot.token}}">
                                 <label for="command" class="text-white me-2">C:\Users\victim0> </label>
-                                <input type="text" name="command" id="command" class="form-control bg-dark text-white border-0 me-3" placeholder="Enter command">
+                                <input type="text" name="command" id="command" class="form-control bg-dark text-white border-0 me-3" placeholder="Enter command" required>
+                                <button type="submit" class="btn btn-primary">Send</button>
                             </form>
                         </div>
                     </div>

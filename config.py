@@ -23,3 +23,7 @@ class SystemDetails(BaseModel):
     gpu: str
     ram: str
     disk: str
+
+class CommandResult(BaseModel):
+    command: str
+    result: str

@@ -108,3 +108,5 @@ pip install -r requirements.txt
 ```text
 request --> middleware1 (check access_token) --> routes + database (handle request) --> middleware2 (add secure headers to response) --> response
 ```
+
+![alt text](image.png)

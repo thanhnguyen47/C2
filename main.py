@@ -5,7 +5,6 @@ from contextlib import asynccontextmanager
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException
 
-
 from middlewares import check_access_token, add_security_headers
 from routes.auth import router as auth_router
 from routes.dashboard import router as dashboard_router
@@ -14,6 +13,7 @@ from routes.session import router as session_router
 from database.dbmain import create_db_pool, close_db_pool
 from config import templates
 # from database.auth import add_user
+# from database.dbmain import init_db
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
