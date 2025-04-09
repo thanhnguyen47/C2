@@ -13,6 +13,9 @@ PEPPER = os.getenv('PEPPER')
 SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITHM = os.getenv('ALGORITHM')
 
+REDIS_HOST=os.getenv('REDIS_HOST')
+REDIS_PORT=os.getenv('REDIS_PORT')
+
 templates = Jinja2Templates(directory='templates')
 
 class SystemDetails(BaseModel):
@@ -23,6 +26,8 @@ class SystemDetails(BaseModel):
     gpu: str
     ram: str
     disk: str
+class CurrentDirectory(BaseModel):
+    current_directory: str
 
 class CommandResult(BaseModel):
     command: str

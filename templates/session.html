@@ -37,35 +37,24 @@
                     <div class="col-md-8 bg-dark position-relative rounded" >
                         <div class="cmd-section text-white p-3">
                             <!-- cmd history -->
-                             <div class="cmd-history">
-                                <div class="cmd-message text-success">C:\Users\victim0> test cmd</div>
-                                <div class="cmd-message text-white">
-                                    result here<br>
-                                    dir result here<br>
-                                    dir result here<br>
-                                    dir result here<br>
-                                    dir result here<br>
-                                    dir result here<br>
-                                    dir result here<br>
-                                    dir result here<br>
-                                    dir result here<br>
-                                    dir result here<br>
-                                    dir result here<br>
-                                    dir result here<br>
-                                    dir result here<br>
-                                    dir result here<br>
-                                    dir result here<br>
-                                    dir result here<br>
-                                    dir result here<br>
-                                    dir result here<br>
-                                    dir result here<br>
-                                    dir result here
-                                </div>
-                             </div>
+                            <div class="cmd-history mb-3">
+                                {% for log in logs %}
+                                    <div class="cmd-message text-success fw-bold fs-6 {% if log.status == 'pending' %}waiting{% endif %}">
+                                        {{ log.directory }} > {{ log.command }} {% if log.status == 'pending' %} (waiting...) {% endif %}
+                                    </div>
+                                    {% if log.result %}
+                                        <div class="cmd-message text-white">
+                                            {{ log.result }}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
                             <form id="command-form" class="cmd-input d-flex align-items-center" bot-token="{{bot.token}}">
-                                <label for="command" class="text-white me-2">C:\Users\victim0> </label>
-                                <input type="text" name="command" id="command" class="form-control bg-dark text-white border-0 me-3" placeholder="Enter command" required>
-                                <button type="submit" class="btn btn-primary">Send</button>
+                                <div class="d-flex align-items-center w-100">
+                                    <label for="command" class="text-white me-2" id="currentDirectory">{{ bot_info.current_directory }}> </label>
+                                    <input type="text" name="command" id="command" class="form-control me-2" required autocomplete="off">
+                                    <button type="submit" class="btn btn-cmd">Send</button>
+                                </div>
                             </form>
                         </div>
                     </div>
@@ -80,7 +69,7 @@
                             <p><strong>CPU: </strong>{{ bot_info.cpu }}</p>
                             <p><strong>GPU: </strong>{{ bot_info.gpu }}</p>
                             <p><strong>Disk: </strong>{{ bot_info.disk }}</p>
-                            <p><strong>Process ID: </strong>10jqk</p>
+                            <!-- <p><strong>Process ID: </strong>10jqk</p> -->
                         </div>
                     </div>
                 </div>

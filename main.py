@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException
 
 from middlewares import check_access_token, add_security_headers
+from fastapi.middleware.cors import CORSMiddleware
 from routes.auth import router as auth_router
 from routes.dashboard import router as dashboard_router
 from routes.bot import router as bot_router
@@ -32,10 +33,22 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+origins = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000"
+]
+
 # config static files
 app.mount('/static', StaticFiles(directory='static'), name='static')
 
 # add middlewares
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 app.middleware("http")(check_access_token)
 app.middleware("http")(add_security_headers)
 

@@ -1,38 +1,100 @@
+/* Định dạng khu vực chính (cmd-section) */
 .cmd-section {
     height: 500px;
     position: relative;
     overflow-y: auto;
     padding-right: 10px;
     scroll-behavior: smooth;
+    background-color: #000; /* Nền đen giống CMD */
 }
 
-/* .cmd-history {
-    overflow-y: auto;
-    max-height: 440px;
-    padding-right: 10px;
-} */
-.cmd-message {
-    font-family: 'Courier New', Courier, monospace; /*cmd fonts*/
-}
+/* Thanh cuộn */
 .cmd-section::-webkit-scrollbar {
     width: 10px;
 }
+
 .cmd-section::-webkit-scrollbar-track {
-    background: #000;
-}
-.cmd-section::-webkit-scrollbar-thumb {
-    background: #555;
-    border-radius: 4px;
-}
-.cmd-section::-webkit-scrollbar-thumb:hover {
-    background: #777;
+    background: #000; /* Nền thanh cuộn đen */
 }
 
+.cmd-section::-webkit-scrollbar-thumb {
+    background: #555; /* Màu xám nhạt */
+    border-radius: 4px;
+}
+
+.cmd-section::-webkit-scrollbar-thumb:hover {
+    background: #777; /* Màu xám đậm hơn khi hover */
+}
+
+/* Định dạng mỗi dòng lệnh */
+.cmd-message {
+    font-family: 'Courier New', Courier, monospace; /* Font giống CMD */
+    white-space: pre-line;
+    width: 100%;
+    text-align: left;
+    margin-top: 0;
+}
+
+/* Dòng lệnh đang chờ */
+.cmd-message.waiting {
+    font-style: italic;
+    opacity: 0.7;
+    color: #aaa; /* Màu xám nhạt để phân biệt */
+}
+
+/* Định dạng phần nhập lệnh */
+.cmd-input {
+    background-color: #000; /* Nền đen giống CMD */
+    padding: 10px;
+    border-top: 1px solid #333; /* Đường viền trên để phân cách với cmd-history */
+    justify-content: flex-end; /* Căn phải nội dung */
+}
+
+/* Định dạng label (đường dẫn thư mục) */
+.cmd-input label {
+    font-family: 'Courier New', Courier, monospace;
+    line-height: 1.5;
+    white-space: nowrap; /* Không cho phép xuống dòng */
+}
+
+/* Định dạng input */
+.cmd-input input.form-control {
+    background-color: #000 !important; /* Nền đen, ghi đè Bootstrap */
+    color: #fff !important; /* Chữ trắng */
+    font-family: 'Courier New', Courier, monospace !important;
+    border: none !important; /* Bỏ viền */
+    outline: none !important; /* Bỏ viền focus */
+    box-shadow: none !important; /* Bỏ hiệu ứng bóng */
+    padding: 0 !important; /* Bỏ padding để trông liền mạch */
+    line-height: 1.5;
+    flex-grow: 1; /* Chiếm toàn bộ không gian còn lại */
+    width: auto; /* Đảm bảo không bị cố định chiều rộng */
+}
+
+/* Định dạng nút Send */
+.cmd-input button.btn-cmd {
+    background-color: #555 !important; /* Màu xám nhạt, giống CMD */
+    color: #fff !important;
+    font-family: 'Courier New', Courier, monospace !important;
+    border: 1px solid #666 !important; /* Viền xám nhạt */
+    padding: 2px 10px !important; /* Padding nhỏ */
+    font-size: 14px !important;
+    transition: none !important; /* Bỏ hiệu ứng chuyển đổi */
+}
+
+/* Bỏ hiệu ứng hover */
+.cmd-input button.btn-cmd:hover {
+    background-color: #666 !important; /* Màu xám đậm hơn một chút */
+    border-color: #777 !important;
+}
+
+/* Định dạng session-details */
 .session-details {
     height: 500px;
     overflow-y: auto;
 }
 
+/* Định dạng nút hành động */
 .btn-action {
     width: 140px;
     height: 40px;

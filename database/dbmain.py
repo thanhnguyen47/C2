@@ -1,7 +1,9 @@
 # import the library to run Postgres instance
 import asyncpg
-from config import DB_NAME, DB_USER, DB_PASSWD, DB_HOST, DB_PORT
+from config import DB_NAME, DB_USER, DB_PASSWD, DB_HOST, DB_PORT, REDIS_HOST, REDIS_PORT
+import redis.asyncio as redis
 
+redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
 connection_pool = None
 
 # establish a new connection
@@ -92,7 +94,8 @@ async def init_db():
                 cpu VARCHAR(256),
                 gpu VARCHAR(256),
                 ram VARCHAR(256),
-                disk VARCHAR(256)
+                disk VARCHAR(256),
+                current_directory TEXT 
             )    
             """)
 
@@ -101,6 +104,7 @@ async def init_db():
                 id SERIAL PRIMARY KEY,
                 bot_id INTEGER NOT NULL,
                 command TEXT NOT NULL,
+                directory TEXT NOT NULL,
                 status VARCHAR(50) NOT NULL DEFAULT 'pending',
                 issued_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
