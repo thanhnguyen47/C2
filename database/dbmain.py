@@ -2,15 +2,18 @@
 import asyncpg
 from config import DB_NAME, DB_USER, DB_PASSWD, DB_HOST, DB_PORT, REDIS_HOST, REDIS_PORT
 import redis.asyncio as redis
+from tenacity import retry, wait_fixed, stop_after_attempt
 
 redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
 connection_pool = None
 
+
+@retry(wait=wait_fixed(2), stop=stop_after_attempt(10))
 # establish a new connection
 async def create_db_pool():
     global connection_pool
     print("Creating DB pool...")
-    connection_pool =  await asyncpg.create_pool(
+    connection_pool = await asyncpg.create_pool(
         database=DB_NAME,
         user=DB_USER,
         password=DB_PASSWD,
@@ -41,30 +44,30 @@ async def init_db():
         raise Exception("DB connection pool is not initialized.")
     async with connection_pool.acquire() as conn:
         try: 
-            await conn.execute("""
-            ALTER TABLE commands
-            DROP CONSTRAINT fk_commands_bot_id;
-            """)
+            # await conn.execute("""
+            # ALTER TABLE commands
+            # DROP CONSTRAINT fk_commands_bot_id;
+            # """)
 
-            await conn.execute("""
-            ALTER TABLE logs
-            DROP CONSTRAINT fk_logs_bot_id;
-            """)
+            # await conn.execute("""
+            # ALTER TABLE logs
+            # DROP CONSTRAINT fk_logs_bot_id;
+            # """)
 
-            await conn.execute("""
-            ALTER TABLE logs
-            DROP CONSTRAINT fk_logs_command_id;
-            """)
+            # await conn.execute("""
+            # ALTER TABLE logs
+            # DROP CONSTRAINT fk_logs_command_id;
+            # """)
 
-            await conn.execute("""
-            ALTER TABLE bot_info
-            DROP CONSTRAINT fk_bot_info_bots_id;
-            """)
-            await conn.execute("DROP TABLE IF EXISTS c2_users;")
-            await conn.execute("DROP TABLE IF EXISTS bots;")
-            await conn.execute("DROP TABLE IF EXISTS bot_info;")
-            await conn.execute("DROP TABLE IF EXISTS commands;")
-            await conn.execute("DROP TABLE IF EXISTS logs;")
+            # await conn.execute("""
+            # ALTER TABLE bot_info
+            # DROP CONSTRAINT fk_bot_info_bots_id;
+            # """)
+            # await conn.execute("DROP TABLE IF EXISTS c2_users;")
+            # await conn.execute("DROP TABLE IF EXISTS bots;")
+            # await conn.execute("DROP TABLE IF EXISTS bot_info;")
+            # await conn.execute("DROP TABLE IF EXISTS commands;")
+            # await conn.execute("DROP TABLE IF EXISTS logs;")
 
             await conn.execute("""
             CREATE TABLE IF NOT EXISTS c2_users (

@@ -11,13 +11,11 @@ async def root():
 
 @router.get('/login')
 async def login_page(request: Request):
-    try:
-        token = request.cookies.get("access_token")
-        # check access_token
-        if verify_access_token(token):
-            return RedirectResponse("/dashboard", status_code=status.HTTP_302_FOUND)
-    except:
-        return templates.TemplateResponse('login.html', context={'request': request, 'error': None})
+    token = request.cookies.get("access_token")
+    # check access_token
+    if verify_access_token(token):
+        return RedirectResponse("/dashboard", status_code=status.HTTP_302_FOUND)
+    return templates.TemplateResponse('login.html', context={'request': request, 'error': None})
 
 @router.post('/login')
 async def login(response: Response, username=Form(...), password=Form(...)):

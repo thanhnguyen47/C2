@@ -1,6 +1,7 @@
 import uvicorn
 
 from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException
@@ -13,16 +14,16 @@ from routes.bot import router as bot_router
 from routes.ddos import router as ddos_router
 from database.dbmain import create_db_pool, close_db_pool
 from config import templates
-# from database.auth import add_user
-# from database.dbmain import init_db
+from database.auth import add_user
+from database.dbmain import init_db
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # startup logic
     print("Starting app initialization...")
     await create_db_pool()
-    # await init_db()
-    # await add_user("wiener", "peter")
+    await init_db()
+    await add_user("wiener", "peter")
 
     yield # this is where the app will run
 
@@ -40,6 +41,10 @@ origins = [
 
 # config static files
 app.mount('/static', StaticFiles(directory='static'), name='static')
+
+@app.get("/favicon.ico")
+async def favicon():
+    return FileResponse("static/favicon.ico")
 
 # add middlewares
 app.add_middleware(
@@ -62,5 +67,6 @@ async def custom_http_exception_handler(request: Request, e: HTTPException):
     if e.status_code == 404:
         return templates.TemplateResponse("404.html", context={"request": request})
 
-if __name__ == '__main__':
-    uvicorn.run("main:app", host='0.0.0.0', port=8000)
+# if __name__ == '__main__':
+#     uvicorn.run("main:app", host='0.0.0.0', port=8000)
+# uvicorn main:app --host 0.0.0.0 --port 8000 --reload

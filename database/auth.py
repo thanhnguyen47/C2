@@ -40,13 +40,13 @@ def verify_access_token(access_token):
         payload = jwt.decode(access_token, bytes.fromhex(SECRET_KEY), algorithms=ALGORITHM)
         username = payload.get("sub")
         if username is None:
-            return False
-        return True
-    except jwt.ExpiredSignatureError:
-        return False
+            return None
+        return username
+    except Exception:
+        return None
 
 async def get_current_user(username):
-    async with await (get_connection_pool()).acquire() as conn:
+    async with (await get_connection_pool()).acquire() as conn:
         try:
             user = await conn.fetchrow('''
                 SELECT * FROM c2_users WHERE username= $1

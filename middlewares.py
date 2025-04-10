@@ -1,15 +1,16 @@
 from fastapi import Request, status
 from fastapi.responses import Response, RedirectResponse
-from database.auth import verify_access_token
+from database.auth import verify_access_token, get_current_user
 
 # middleware: check access_token before run into api
 async def check_access_token(request: Request, call_next):
     # ignore /login and /static, ...
-    if request.url.path in ["/login", "/"] or request.url.path.startswith("/static") or request.url.path.startswith("/api/v1"):
+    if request.url.path in ["/login", "/", "/favicon.ico"] or request.url.path.startswith("/static") or request.url.path.startswith("/api/v1"):
         return await call_next(request)
     try:
         token = request.cookies.get("access_token")
-        if not token or not verify_access_token(token):
+        user = verify_access_token(token)
+        if not token or not user:
             response = RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
             response.set_cookie(
                 key="access_token",
@@ -20,8 +21,11 @@ async def check_access_token(request: Request, call_next):
                 samesite="lax"
             )
             return response
+        
+        request.state.user = await get_current_user(user)
         # after all check, run into api
-        return await call_next(request)
+        response: Response =  await call_next(request)
+        return response
     except:
         # delete cookie if verify is error
         response = RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)

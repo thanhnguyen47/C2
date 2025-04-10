@@ -2,10 +2,11 @@ fastapi
 uvicorn
 asyncpg
 bcrypt
-secrets
 python-dotenv
 jinja2
 python-multipart
 pyjwt
 sse_starlette
 redis
+docker
+tenacity
