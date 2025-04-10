@@ -69,7 +69,7 @@ document.getElementById("command-form").addEventListener("submit", (event) => {
         const formData = new FormData()
         formData.append("command", command)
     
-        fetch (`/session/${token}/command`, {
+        fetch (`/ddos/${token}/command`, {
             method: "POST",
             body: formData,
             credentials: "include"

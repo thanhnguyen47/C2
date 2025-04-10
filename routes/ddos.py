@@ -6,21 +6,25 @@ from sse_starlette import EventSourceResponse
 import json
 router = APIRouter()
 
-@router.get("/session/{token}")
+@router.get("/ddos")
+async def ddos_simulation(request: Request):
+    return templates.TemplateResponse('ddos_simulation/ddos.html', context={'request': request, 'active_page':'ddos'})
+
+@router.get("/ddos/{token}")
 async def get_session(request: Request, token):
     try:
         bot = await get_bot(token)
         bot_info = await get_bot_info(bot["id"])
         logs = await get_logs(bot["id"])
         if bot and bot_info:
-            return templates.TemplateResponse('session.html', context={'request': request, 'bot': bot, 'bot_info': bot_info, 'logs': logs})
+            return templates.TemplateResponse('ddos_simulation/bot_c2.html', context={'request': request, 'bot': bot, 'bot_info': bot_info, 'logs': logs, 'active_page':'ddos'})
         else:
             return templates.TemplateResponse('404.html', context={"request": request})
     except Exception as e:
             print(f"Exception: {str(e)}")
             return templates.TemplateResponse('404.html', context={"request": request})
 
-@router.post("/session/{token}/command")
+@router.post("/ddos/{token}/command")
 async def post_command(token: str, command: str=Form(...)):
         async with (await get_connection_pool()).acquire() as conn:
             try:

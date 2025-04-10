@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routes.auth import router as auth_router
 from routes.dashboard import router as dashboard_router
 from routes.bot import router as bot_router
-from routes.session import router as session_router
+from routes.ddos import router as ddos_router
 from database.dbmain import create_db_pool, close_db_pool
 from config import templates
 # from database.auth import add_user
@@ -55,7 +55,7 @@ app.middleware("http")(add_security_headers)
 app.include_router(auth_router)
 app.include_router(dashboard_router)  
 app.include_router(bot_router)
-app.include_router(session_router)
+app.include_router(ddos_router)
 
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handler(request: Request, e: HTTPException):
