@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Request, Response, Form, HTTPException, status
-from fastapi.responses import RedirectResponse
-from database.auth import verify_access_token, authenticate_user, generate_access_token
+from fastapi import APIRouter, Request, Form, HTTPException, status
+from fastapi.responses import RedirectResponse, Response, JSONResponse
+from database.auth import verify_access_token, authenticate_user, generate_access_token, hash_passwd
+from database.dbmain import get_connection_pool
 from config import templates
 
 router = APIRouter()
@@ -32,3 +33,23 @@ async def login(response: Response, username=Form(...), password=Form(...)):
         samesite="lax"
     )
     return {"message": "login successful"}
+
+@router.post('/register')
+async def register(username=Form(...), password=Form(...)):
+    try:
+        async with (await get_connection_pool()).acquire() as conn:
+            # Check if username already exists
+            existing_user = await conn.fetchrow("SELECT * FROM c2_users WHERE username = $1", username)
+            if existing_user:
+                raise
+
+            hashed_passwd = hash_passwd(password)
+            print(username, password, hashed_passwd)
+            # Insert new user
+            await conn.execute("INSERT INTO c2_users (username, hashed_passwd) VALUES ($1, $2)", username, hashed_passwd)
+
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content={"message": "User registered successfully"})
+    except Exception:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"message": "Registration failed"})
+
+

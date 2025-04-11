@@ -9,6 +9,7 @@ import docker
 router = APIRouter()
 
 docker_client = docker.from_env()
+traefik_container = docker_client.containers.get("thanh-traefik-1")
 
 @router.get("/ddos")
 async def ddos_simulation(request: Request):
@@ -21,37 +22,64 @@ user_containers = {} # {user_id: container_id}
 @router.post("/ddos/start-target")
 async def start_target(request: Request):
     # check if target for this user already running
+
     user_id = str(request.state.user["id"])
+    network_name = f"ddos_net_user_{user_id}"
+
+    if user_id in user_containers:
+        return {"message": "Target is already running"}
+
+    # create new isolating network for user
+    existing_networks = docker_client.networks.list(names=[network_name])
+    if not existing_networks:
+        docker_client.networks.create(
+            name=network_name,
+            driver="bridge",
+            check_duplicate=True
+        )
 
     # create new container
     container = docker_client.containers.run(
-         "target-machine",
+         "ddos-target",
          detach=True,
-         ports={'80/tcp':None}, # docker will automatically assign a port for it
         labels={
              "traefik.enable": "true",
-             f"traefik.http.routers.user{user_id}.rule": f"Host(`user{user_id}.lab.local`)"
+             f"traefik.http.routers.user{user_id}.rule": f"Host(`user{user_id}.lab.local`)",
+             f"traefik.http.routers.user{user_id}.entrypoints": "web",
+             f"traefik.http.services.user{user_id}.loadbalancer.server.port": "80"
         },
         cpu_count=1,
         mem_limit="256m",
-        network="thanh_c2-network"
+        network=network_name
     )
+
+    network = docker_client.networks.get(network_name)
+    try:
+        # try to connect traefik to new user's network 
+        network.connect(traefik_container)
+    except Exception:
+        pass
     user_containers[user_id] = container.id
-    container.reload()
-    port = container.attrs['NetworkSettings']['Ports']['80/tcp'][0]['HostPort']
     target_url = f"http://user{user_id}.lab.local"
-    return {"target": target_url, "port": port}
+    return {"target": target_url}
 
 @router.post("/ddos/stop-target")
 async def stop_target(request: Request):
     user_id = str(request.state.user["id"])
-
+    network_name = f"ddos_net_user_{user_id}"
     container_id = user_containers[user_id]
+    if not container_id:
+        return {"message": "No target running"}
+    
     container = docker_client.containers.get(container_id)
     container.stop()
     container.remove()
     del user_containers[user_id]
     
+    net = docker_client.networks.get(network_name)
+    net.remove()
+
+
     return {"message": "target stopped and removed"}
 
 @router.get("/ddos/{token}")
@@ -78,7 +106,7 @@ async def post_command(token: str, command: str=Form(...)):
                 token
             )
             if not bot or not command:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="error")
+                return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="error")
             bot_id = bot["id"]
             bot_info = await get_bot_info(bot_id)
             # add this command to commands table with status=pending (default)

@@ -1,3 +1,4 @@
+
 document.addEventListener("DOMContentLoaded", () => {
     const loginForm = document.getElementById("loginForm");
     const registerForm = document.getElementById("registerForm");
@@ -19,25 +20,28 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Xử lý submit form đăng ký
-    registerForm.addEventListener("submit", async (e) => {
+    registerForm.addEventListener("submit", (e) => {
         e.preventDefault();
-        const username = document.getElementById("reg_username").value;
-        const password = document.getElementById("reg_password").value;
+        const username = document.getElementById("reg_username");
+        const password = document.getElementById("reg_password");
 
-        const response = await fetch("/register", {
+        fetch("/register", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({ username, password })
-        });
-
-        const result = await response.json();
-        if (response.ok) {
-            alert(result.message);
-            registerForm.classList.add("d-none");
-            loginForm.classList.remove("d-none");
-        } else {
-            alert(result.detail);
-        }
+            body: new URLSearchParams({ username: username.value, password: password.value })
+        })
+        .then(r=>{
+            if (r.status === 201) {
+                alert("Register success")
+                registerForm.classList.add("d-none")
+                loginForm.classList.remove("d-none")
+            } else {
+                alert("Register fail")
+            }
+            username.value = ""
+            password.value = ""
+        })
+        .catch(e=>console.log(e))
     });
 
     // Xử lý submit form login

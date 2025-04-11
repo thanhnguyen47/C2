@@ -8,25 +8,27 @@ const attackBtn = document.getElementById('attackBtn');
 const endSimulationBtn = document.getElementById('endSimulationBtn');
 
 // Xử lý khi nhấn nút Start
-startBtn.addEventListener('click', async function () {
+startBtn.addEventListener('click', function (event) {
+    event.preventDefault()
     startBtn.textContent = 'Starting...';
     startBtn.disabled = true;
 
-    // Giả lập khởi động máy ảo và lấy domain mục tiêu
-    setTimeout(() => {
-        const targetDomain = 'target-server.com'; // Thay bằng API thực tế nếu cần
-        targetDomainText.textContent = targetDomain;
+    fetch("/ddos/start-target", {
+        method: "POST"
+    })
+    .then(r=>r.json())
+    .then(j=>{
+        targetDomainText.textContent = j.target
 
-        // Hiển thị các phần liên quan
         targetDomainDisplay.classList.remove('d-none');
         attackConfigSection.classList.remove('d-none');
         attackBtnContainer.classList.remove('d-none');
 
-        // Cập nhật trạng thái nút Start
         startBtn.textContent = 'Started';
         startBtn.classList.remove('btn-primary');
         startBtn.classList.add('btn-success');
-    }, 2000); // Giả lập độ trễ 2 giây
+    })
+    .catch(e=>console.error(e))
 });
 
 // Xử lý khi nhấn nút Attack
