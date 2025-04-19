@@ -16,6 +16,8 @@ ALGORITHM = os.getenv('ALGORITHM')
 REDIS_HOST=os.getenv('REDIS_HOST')
 REDIS_PORT=os.getenv('REDIS_PORT')
 
+C2_URL=os.getenv('C2_URL')
+
 templates = Jinja2Templates(directory='templates')
 
 class SystemDetails(BaseModel):
