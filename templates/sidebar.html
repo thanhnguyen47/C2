@@ -1,12 +1,15 @@
 <link rel="stylesheet" href="/static/styles/sidebar.css">
 <div class="sidebar">
-    <div class="bg-primary p-3"><a class="text-white text-decoration-none fs-4" href="/dashboard">C2 Server</a></div>
+    <div class="p-3"></div>
     <ul class="nav flex-column">
         <li class="nav-item">
             <a href="/dashboard" class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">DASHBOARD</a>
         </li>
         <li class="nav-item">
             <a href="/ddos" class="nav-link {% if active_page == 'ddos' %}active{% endif %}">DDOS Simulation</a>
+        </li>
+        <li class="nav-item">
+            <a href="/web" class="nav-link {% if active_page == 'web_challs' %}active{% endif %}">Web Challenges</a>
         </li>
         <li class="nav-item">
             <a href="/settings" class="nav-link {% if active_page == 'settings' %}active{% endif %}">Settings</a>

@@ -1,7 +1,8 @@
 from dotenv import load_dotenv
 import os
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
+from pydantic import BaseModel, HttpUrl
+from typing import Optional, Dict
 
 load_dotenv()
 DB_NAME=os.getenv('DB_NAME')
@@ -34,3 +35,21 @@ class CurrentDirectory(BaseModel):
 class CommandResult(BaseModel):
     command: str
     result: str
+
+class AttackRequest(BaseModel):
+    attack_type: str
+    intensity: int
+    duration: int
+    target_url: HttpUrl
+    spoof_headers: Optional[bool] = False
+    custom_headers: Optional[Dict[str, str]] = {}
+    target_port: Optional[int]=None
+    spoof_ip: Optional[bool]=False
+    packet_size: Optional[int]=None
+
+class AttackResponse(BaseModel):
+    attack_id: str
+    status: str
+    message: str
+
+SUPPORTED_ATTACK_TYPES = ["HTTP_FLOOD", "SYN_FLOOD", "UDP_FLOOD"]

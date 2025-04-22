@@ -42,7 +42,8 @@ def verify_access_token(access_token):
         if username is None:
             return None
         return username
-    except Exception:
+    except Exception as e:
+        print("Exception when verify access token: ", e)
         return None
 
 async def get_current_user(username):

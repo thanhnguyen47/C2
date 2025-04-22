@@ -1,0 +1,78 @@
+.navbar {
+    background-color: #1a2526; /* Màu nền tối từ hình ảnh */
+    padding: 10px 0;
+}
+.navbar-brand {
+    color: #ffffff !important;
+    font-weight: bold;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+}
+.navbar-brand img {
+    height: 30px;
+    margin-right: 10px;
+}
+.search-form {
+    max-width: 600px; /* Kéo dài search bar */
+    margin-left: 20px;
+    position: relative;
+}
+.search-form .form-control {
+    background-color: #2a3b3c; /* Màu nền search bar từ hình ảnh */
+    border: none;
+    color: #fff;
+    padding-right: 40px;
+}
+.search-form .form-control::placeholder {
+    color: #aaa;
+}
+.search-form .search-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaa;
+    pointer-events: none;
+}
+.nav-icon {
+    color: #ffffff;
+    font-size: 1.2rem;
+    margin-right: 5px;
+}
+.user-link {
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+.username {
+    color: #ffffff;
+    margin-left: 5px;
+}
+.dropdown-menu {
+    background-color: #2a3b3c;
+}
+.dropdown-item {
+    color: #ffffff;
+}
+.dropdown-item:hover {
+    background-color: #00ff00;
+    color: #000;
+}
+@media (max-width: 991px) {
+    .search-form {
+        max-width: 40px; /* Thu nhỏ search bar */
+        margin-left: 10px;
+    }
+    .search-form .form-control {
+        padding-right: 30px;
+        width: 40px;
+    }
+    .username {
+        display: none; /* Ẩn username trên màn hình nhỏ */
+    }
+    .navbar-nav {
+        align-items: center;
+    }
+}

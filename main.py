@@ -12,6 +12,7 @@ from routes.auth import router as auth_router
 from routes.dashboard import router as dashboard_router
 from routes.bot import router as bot_router
 from routes.ddos import router as ddos_router
+from routes.web_challs import router as web_router
 from database.dbmain import create_db_pool, close_db_pool
 from config import templates
 from database.auth import add_user
@@ -61,6 +62,7 @@ app.include_router(auth_router)
 app.include_router(dashboard_router)  
 app.include_router(bot_router)
 app.include_router(ddos_router)
+app.include_router(web_router)
 
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handler(request: Request, e: HTTPException):

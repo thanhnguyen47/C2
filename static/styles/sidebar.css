@@ -1,9 +1,9 @@
 .sidebar {
     position: fixed;
-    top: 0;
+    top: 70px;
     left: 0;
     height: 100vh; /* Chiều cao toàn màn hình */
-    width: 250px; /* Độ rộng sidebar */
+    width: 200px; /* Độ rộng sidebar */
     background-color: #f8f9fa; /* Màu nền sidebar */
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Đổ bóng */
     z-index: 1000; /* Đảm bảo sidebar luôn ở trên */
@@ -21,8 +21,4 @@
 .sidebar .nav-link:hover {
     background-color: #272913; /* Màu nền khi hover */
     color: white; /* Màu chữ khi hover */
-}
-.main-content {
-    margin-left: 200px; /* Đẩy nội dung chính sang phải bằng độ rộng sidebar */
-    padding: 20px; /* Khoảng cách padding cho nội dung */
 }
