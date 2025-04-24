@@ -22,23 +22,27 @@ document.addEventListener("DOMContentLoaded", () => {
     // Xử lý submit form đăng ký
     registerForm.addEventListener("submit", (e) => {
         e.preventDefault();
+        const fullname = document.getElementById("reg_fullname");
         const username = document.getElementById("reg_username");
+        const email = document.getElementById("reg_email");
         const password = document.getElementById("reg_password");
 
         fetch("/register", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({ username: username.value, password: password.value })
+            body: new URLSearchParams({ fullname: fullname.value, username: username.value, email: email.value, password: password.value })
         })
         .then(r=>{
             if (r.status === 201) {
-                alert("Register success")
+                alert("Register success, check the email to verify account")
                 registerForm.classList.add("d-none")
                 loginForm.classList.remove("d-none")
             } else {
                 alert("Register fail")
             }
+            fullname.value = ""
             username.value = ""
+            email.value = ""
             password.value = ""
         })
         .catch(e=>console.log(e))

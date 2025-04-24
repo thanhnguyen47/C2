@@ -11,7 +11,7 @@
     <div class="container mt-5">
         <div class="row justify-content-center">
             <div class="col-md-4">
-                <h2 class="text-center">C2 Login</h2>
+                <h2 class="text-center">C2 Platform</h2>
                     <form id="loginForm" method="post" action="/login">
                         <div class="mb-3">
                             <label for="username" class="form-label">Username</label>
@@ -28,8 +28,16 @@
                     </form>
                     <form id="registerForm" class="d-none" method="post" action="/register">
                         <div class="mb-3">
+                            <label for="reg_fullname" class="form-label">Fullname</label>
+                            <input type="text" class="form-control" id="reg_fullname" name="fullname" required>
+                        </div>
+                        <div class="mb-3">
                             <label for="reg_username" class="form-label">Username</label>
                             <input type="text" class="form-control" id="reg_username" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reg_email" class="form-label">Email</label>
+                            <input type="text" class="form-control" id="reg_email" name="email" required>
                         </div>
                         <div class="mb-3">
                             <label for="reg_password" class="form-label">Password</label>

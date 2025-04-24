@@ -72,8 +72,37 @@ async def init_db():
             await conn.execute("""
             CREATE TABLE IF NOT EXISTS c2_users (
                 id SERIAL PRIMARY KEY,
+                fullname VARCHAR(100),
                 username VARCHAR(50) UNIQUE NOT NULL,
-                hashed_passwd VARCHAR(255) NOT NULL
+                email VARCHAR(255) UNIQUE,
+                hashed_passwd VARCHAR(255) NOT NULL,
+                is_admin BOOLEAN NOT NULL DEFAULT FALSE
+            )
+            """)
+
+            await conn.execute("""
+            CREATE TABLE IF NOT EXISTS c2_user_info (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                date_of_birth DATE,
+                country VARCHAR(100),
+                timezone VARCHAR(50),
+                phone_number VARCHAR(20),
+                website VARCHAR(255),
+                avatar_url TEXT
+            )
+            """)
+
+            await conn.execute("""
+            CREATE TABLE IF NOT EXISTS pending_users (
+                id SERIAL PRIMARY KEY,
+                fullname VARCHAR(100),
+                username VARCHAR(50) UNIQUE NOT NULL,
+                email VARCHAR(255) UNIQUE,
+                hashed_passwd VARCHAR(255) NOT NULL,
+                is_admin BOOLEAN NOT NULL DEFAULT FALSE,
+                verification_token VARCHAR(100) NOT NULL,
+                token_expiry TIMESTAMP NOT NULL
             )
             """)
 
@@ -126,13 +155,13 @@ async def init_db():
             await conn.execute("""
             ALTER TABLE commands
             ADD CONSTRAINT fk_commands_bot_id
-            FOREIGN KEY (bot_id) REFERENCES bots(id);
+            FOREIGN KEY (bot_id) REFERENCES bots(id) ON DELETE CASCADE;
             """)
 
             await conn.execute("""
             ALTER TABLE logs
             ADD CONSTRAINT fk_logs_bot_id
-            FOREIGN KEY (bot_id) REFERENCES bots(id);
+            FOREIGN KEY (bot_id) REFERENCES bots(id) ON DELETE CASCADE;
             """)
 
             await conn.execute("""
@@ -144,7 +173,7 @@ async def init_db():
             await conn.execute("""
             ALTER TABLE bot_info
             ADD CONSTRAINT fk_bot_info_bots_id
-            FOREIGN KEY (bot_id) REFERENCES bots(id);
+            FOREIGN KEY (bot_id) REFERENCES bots(id) ON DELETE CASCADE;
             """)
         except Exception as e:
             raise Exception(f"error initializing database: {str(e)}")

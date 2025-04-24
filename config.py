@@ -19,6 +19,11 @@ REDIS_PORT=os.getenv('REDIS_PORT')
 
 C2_URL=os.getenv('C2_URL')
 
+SMTP_SERVER = os.getenv('SMTP_SERVER')
+SMTP_PORT = os.getenv('SMTP_PORT')
+SENDER_EMAIL=os.getenv('SENDER_EMAIL')
+SENDER_PASSWORD=os.getenv('SENDER_PASSWORD')
+
 templates = Jinja2Templates(directory='templates')
 
 class SystemDetails(BaseModel):

@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import jwt
 
 def hash_passwd(passwd):
-    salt = bcrypt.gensalt(rounds=15)
+    salt = bcrypt.gensalt()
     passwd_with_pepper = passwd.encode() + bytes.fromhex(PEPPER)
     hashed_passwd = bcrypt.hashpw(passwd_with_pepper, salt)
     return hashed_passwd.decode()
@@ -37,8 +37,10 @@ def generate_access_token(username):
 
 def verify_access_token(access_token):
     try:
+        # if isinstance(access_token, str):
+        #     access_token = access_token.encode()
         payload = jwt.decode(access_token, bytes.fromhex(SECRET_KEY), algorithms=ALGORITHM)
-        username = payload.get("sub")
+        username = payload.get("sub")   
         if username is None:
             return None
         return username

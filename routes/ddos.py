@@ -52,8 +52,9 @@ async def start_target(request: Request, bot_count: int = Form(1)):
              f"traefik.http.services.user{user_id}.loadbalancer.server.port": "80",
              "user_id":user_id
         },
-        cpu_count=1,
-        mem_limit="256m",
+        cpu_quota=30000,  # 30% CPU (30000 microseconds trong 1 chu kỳ)
+        cpu_period=100000,  # Chu kỳ 0.1 giây
+        mem_limit="100m",
         network=network_name
     )
 
@@ -86,8 +87,9 @@ async def start_target(request: Request, bot_count: int = Form(1)):
             labels={
                 "user_id":user_id
             },
-            cpu_count=1,
-            mem_limit="128m",
+            cpu_quota=5000,  # 5% CPU (5000 microseconds trong 1 chu kỳ)
+            cpu_period=100000,  # Chu kỳ 0.1 giây
+            mem_limit="50m",
             network=network_name,
             user="root",
             cap_add=["NET_ADMIN", "NET_RAW"]

@@ -1,5 +1,9 @@
+body {
+    background-color: #f8f9fa;
+}
+
 .main-content {
-    margin-left: 200px; /* Đẩy nội dung chính sang phải bằng độ rộng sidebar */
+    /* margin-left: 200px; Đẩy nội dung chính sang phải bằng độ rộng sidebar */
     padding: 20px; /* Khoảng cách padding cho nội dung */
-    margin-top: 0;
+    margin-top: 50px;
 }
