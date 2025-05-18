@@ -18,6 +18,16 @@
     transform: translateY(-3px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
+.challenge-item-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+.challenge-item-link:hover .challenge-title {
+    text-decoration: underline;
+}
+
 .challenge-header {
     display: flex;
     flex-direction: column;

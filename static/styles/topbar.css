@@ -75,4 +75,14 @@
     .navbar-nav {
         align-items: center;
     }
+    .navbar-nav .dropdown-menu {
+    position: absolute !important;
+    top: 40px !important; /* hoặc top: 100% nếu muốn sát avatar */
+    right: 3px;
+    z-index: 1050;
+    }
+
+    .navbar-nav {
+        position: relative; /* để dropdown bám vào đúng vị trí */
+    }
 }

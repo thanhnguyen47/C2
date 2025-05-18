@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Challenge Details - Admin</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/styles/index.css">
+    <style>
+        .card {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 0.5rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .form-control:disabled {
+            background-color: #e9ecef;
+            border: 1px solid #ced4da;
+            color: #495057;
+            font-size: 0.95rem;
+            border-radius: 0.375rem;
+            box-shadow: none;
+        }
+
+        textarea.form-control:disabled {
+            min-height: 100px;
+            resize: none;
+        }
+
+        .card-header {
+            padding: 1.5rem 1.5rem;
+            border-bottom: 1px solid #dee2e6;
+            background-color: #e9ecef;
+            border-radius: 0.5rem 0.5rem 0 0;
+        }
+
+        .card-header h2 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .card-header h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        @media (max-width: 767.98px) {
+            .card-header {
+                padding: 1rem;
+            }
+
+            .card-header h2 {
+                font-size: 1.5rem;
+            }
+
+            .card-header h3 {
+                font-size: 1.1rem;
+            }
+
+            .form-control:disabled {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include 'topbar.html' %}
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-2 bg-light vh-100 p-0 sidebar-container">
+                {% include 'sidebar.html' %}
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-10 main-content">
+                <div class="row g-4">
+                    <!-- Header Card -->
+                    <div class="col-12">
+                        <div class="card shadow-sm p-4">
+                            <div class="card-header d-flex align-items-center">
+                                <div>
+                                    <h2 class="mb-1">{{ challenge.title }}</h2>
+                                    <div class="mt-2 d-flex gap-3">
+                                        <span class="badge bg-primary text-white">{{ challenge.level|capitalize }}</span>
+                                        <span class="badge bg-{{ 'success' if challenge.status == 'active' else 'secondary' }}">{{ challenge.status|capitalize }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Challenge Details -->
+                    <div class="col-12">
+                        <div class="card shadow-sm p-4">
+                            <div class="card-header">
+                                <h3 class="mb-0"><i class="bi bi-info-circle me-2"></i>Challenge Details</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Challenge ID</label>
+                                        <input type="text" class="form-control" value="{{ challenge.challenge_id }}" disabled>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Topic ID</label>
+                                        <input type="text" class="form-control" value="{{ challenge.topic_id }}" disabled>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold">Description</label>
+                                        <textarea class="form-control" disabled>{{ challenge.description or 'N/A' }}</textarea>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Correct Flag</label>
+                                        <input type="text" class="form-control" value="{{ challenge.correct_flag or 'N/A' }}" disabled>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Slug</label>
+                                        <input type="text" class="form-control" value="{{ challenge.slug or 'N/A' }}" disabled>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Lecture Link</label>
+                                        <input type="text" class="form-control" value="{{ challenge.lecture_link or 'N/A' }}" disabled>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Source Code Link</label>
+                                        <input type="text" class="form-control" value="{{ challenge.source_code_link or 'N/A' }}" disabled>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold">Solution</label>
+                                        <textarea class="form-control" disabled>{{ challenge.solution or 'N/A' }}</textarea>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Created At</label>
+                                        <input type="text" class="form-control" value="{{ challenge.created_at|default('N/A') }}" disabled>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Docker Information (if available) -->
+                    {% if docker_image %}
+                    <div class="col-12">
+                        <div class="card shadow-sm p-4">
+                            <div class="card-header">
+                                <h3 class="mb-0"><i class="bi bi-box me-2"></i>Docker Information</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Image Name</label>
+                                        <input type="text" class="form-control" value="{{ docker_image.image_name or 'N/A' }}" disabled>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Ports</label>
+                                        <input type="text" class="form-control" value="{{ docker_image.ports or 'N/A' }}" disabled>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Run Parameters</label>
+                                        <input type="text" class="form-control" value="{{ docker_image.run_parameters or 'N/A' }}" disabled>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Created At</label>
+                                        <input type="text" class="form-control" value="{{ docker_image.created_at|default('N/A') }}" disabled>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

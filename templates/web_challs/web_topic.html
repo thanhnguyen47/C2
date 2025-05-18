@@ -19,130 +19,34 @@
         
         <div class="row">
             <!-- Sidebar -->
-            <div class="col-2 bg-light vh-100 p-0">
+            <div class="col-2 bg-light vh-100 p-0 sidebar-container">
                 {% include 'sidebar.html' %}
             </div>
         
             <!-- Main Content -->
             <div class="main-content col-10">
                 <div class="py-4 px-3">
-                    <h2 class="display-5 fw-bold mb-3">SQL Injection</h2>
-                    <p class="intro-text">SQL Injection is a critical security vulnerability that allows attackers to interfere with the queries an application makes to its database. By exploiting this flaw, malicious actors can extract sensitive data such as user credentials, manipulate database contents, or even gain unauthorized access to the underlying server. In these hands-on labs, you'll learn how to identify and exploit SQL Injection vulnerabilities, understand their impact, and explore techniques to retrieve hidden data, bypass authentication, and manipulate database structures. Each lab is designed to simulate real-world scenarios, helping you build practical skills to secure applications against such attacks.</p>
-        
+                    <h2 class="display-5 fw-bold mb-3">{{ topic.title }}</h2>
+                    <p class="intro-text">{{ topic.description }}</p>
+                    
                     <!-- SQL Injection Challenges -->
                     <div class="challenge-list">
-                        <!-- Apprentice Level -->
-                        <div class="challenge-item">
-                            <div class="challenge-header">
-                                <div class="challenge-meta">
-                                    <i class="bi bi-flask lab-icon"></i>
-                                    <span class="challenge-level apprentice">APPRENTICE</span>
+                        {% for challenge in challenges %}
+                        <a href="/web/{{ topic.slug }}/{{ challenge.slug }}" class="challenge-item-link">
+                            <div class="challenge-item">
+                                <div class="challenge-header">
+                                    <div class="challenge-meta">
+                                        <i class="bi bi-flask lab-icon"></i>
+                                        <span class="challenge-level {{ challenge.level.lower() }}">{{ challenge.level }}</span>
+                                    </div>
+                                    <p class="challenge-title">{{ challenge.title }}</p>
                                 </div>
-                                <p class="challenge-title">SQL injection vulnerability in WHERE clause allowing retrieval of hidden data</p>
+                                <span class="challenge-status-{{ 'solved' if challenge.is_solved else 'unsolved' }}">
+                                    {{ 'Solved' if challenge.is_solved else 'Unsolved' }}
+                                </span>
                             </div>
-                            <span class="challenge-status-solved">Solved</span>
-                        </div>
-        
-                        <div class="challenge-item">
-                            <div class="challenge-header">
-                                <div class="challenge-meta">
-                                    <i class="bi bi-flask lab-icon"></i>
-                                    <span class="challenge-level apprentice">APPRENTICE</span>
-                                </div>
-                                <p class="challenge-title">SQL injection vulnerability allowing login bypass</p>
-                            </div>
-                            <span class="challenge-status-solved">Solved</span>
-                        </div>
-        
-                        <!-- Practitioner Level -->
-                        <div class="challenge-item">
-                            <div class="challenge-header">
-                                <div class="challenge-meta">
-                                    <i class="bi bi-flask lab-icon"></i>
-                                    <span class="challenge-level practitioner">PRACTITIONER</span>
-                                </div>
-                                <p class="challenge-title">SQL injection attack, querying the database type and version on Oracle</p>
-                            </div>
-                            <span class="challenge-status-solved">Solved</span>
-                        </div>
-        
-                        <div class="challenge-item">
-                            <div class="challenge-header">
-                                <div class="challenge-meta">
-                                    <i class="bi bi-flask lab-icon"></i>
-                                    <span class="challenge-level practitioner">PRACTITIONER</span>
-                                </div>
-                                <p class="challenge-title">SQL injection attack, querying the database type and version on MySQL and Microsoft</p>
-                            </div>
-                            <span class="challenge-status-unsolved">Unsolved</span>
-                        </div>
-        
-                        <div class="challenge-item">
-                            <div class="challenge-header">
-                                <div class="challenge-meta">
-                                    <i class="bi bi-flask lab-icon"></i>
-                                    <span class="challenge-level practitioner">PRACTITIONER</span>
-                                </div>
-                                <p class="challenge-title">SQL injection attack, listing the database contents on non-Oracle databases</p>
-                            </div>
-                            <span class="challenge-status-solved">Solved</span>
-                        </div>
-        
-                        <div class="challenge-item">
-                            <div class="challenge-header">
-                                <div class="challenge-meta">
-                                    <i class="bi bi-flask lab-icon"></i>
-                                    <span class="challenge-level practitioner">PRACTITIONER</span>
-                                </div>
-                                <p class="challenge-title">SQL injection attack, listing the database contents on Oracle</p>
-                            </div>
-                            <span class="challenge-status-solved">Solved</span>
-                        </div>
-        
-                        <div class="challenge-item">
-                            <div class="challenge-header">
-                                <div class="challenge-meta">
-                                    <i class="bi bi-flask lab-icon"></i>
-                                    <span class="challenge-level practitioner">PRACTITIONER</span>
-                                </div>
-                                <p class="challenge-title">SQL injection UNION attack, determining the number of columns returned by the query</p>
-                            </div>
-                            <span class="challenge-status-solved">Solved</span>
-                        </div>
-        
-                        <div class="challenge-item">
-                            <div class="challenge-header">
-                                <div class="challenge-meta">
-                                    <i class="bi bi-flask lab-icon"></i>
-                                    <span class="challenge-level practitioner">PRACTITIONER</span>
-                                </div>
-                                <p class="challenge-title">SQL injection UNION attack, finding a column containing text</p>
-                            </div>
-                            <span class="challenge-status-solved">Solved</span>
-                        </div>
-        
-                        <!-- Expert Level -->
-                        <div class="challenge-item">
-                            <div class="challenge-header">
-                                <div class="challenge-meta">
-                                    <i class="bi bi-flask lab-icon"></i>
-                                    <span class="challenge-level expert">EXPERT</span>
-                                </div>
-                                <p class="challenge-title">SQL injection UNION attack, retrieving data from other tables</p>
-                            </div>
-                            <span class="challenge-status-solved">Solved</span>
-                        </div>
-        
-                        <div class="challenge-item">
-                            <div class="challenge-header">
-                                <div class="challenge-meta">
-                                    <i class="bi bi-flask lab-icon"></i>
-                                    <span class="challenge-level expert">EXPERT</span>
-                                </div>
-                                <p class="challenge-title">SQL injection UNION attack, retrieving multiple values in a single column</p>
-                            </div>
-                            <span class="challenge-status-solved">Solved</span>
-                        </div>
+                        </a>
+                        {% endfor %}
                     </div>
                 </div>
             </div>

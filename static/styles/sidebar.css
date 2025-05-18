@@ -1,3 +1,4 @@
+/* CSS cơ bản của sidebar */
 .sidebar {
     position: fixed;
     top: 70px;
@@ -7,18 +8,86 @@
     background-color: #f8f9fa; /* Màu nền sidebar */
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Đổ bóng */
     z-index: 1000; /* Đảm bảo sidebar luôn ở trên */
+    transition: transform 0.3s ease-in-out; /* Hiệu ứng trượt mượt mà */
 }
+
 .sidebar .nav-link {
     color: #495057;
     font-size: 1em;
     padding: 10px 15px; /* Khoảng cách trong link */
     display: block; /* Đảm bảo link chiếm toàn bộ chiều ngang */
 }
+
 .sidebar .nav-link.active {
     background-color: #000; /* Màu nền khi active */
     color: white;
 }
+
 .sidebar .nav-link:hover {
     background-color: #272913; /* Màu nền khi hover */
     color: white; /* Màu chữ khi hover */
+}
+
+/* CSS responsive */
+body {
+    overflow-x: hidden; /* Ngăn scroll ngang khi sidebar overlay */
+}
+
+/* Toggle button cho mobile */
+.sidebar-toggle {
+    display: none; /* Ẩn trên desktop */
+    top: 50px;
+    left: 1rem;
+    z-index: 1100;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #495057;
+}
+
+/* Overlay khi sidebar mở */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 900;
+    display: none;
+}
+
+.overlay.active {
+    display: block;
+}
+
+/* Responsive styles */
+@media (max-width: 767.98px) {
+    .sidebar-container {
+        position: absolute !important ;
+        width: 0px !important;
+    }
+    .sidebar {
+        position: fixed;             /* ✅ Tách khỏi flow layout */
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 250px; /* Chiều rộng sidebar trên mobile */
+        transform: translateX(-100%); /* Ẩn sidebar trên mobile */
+        z-index:1000;
+    }
+
+    .sidebar.active {
+        transform: translateX(0); /* Hiện sidebar khi toggle */
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Giữ shadow tương tự */
+    }
+
+    .main-content {
+        margin-left: 0; /* Main content chiếm toàn bộ chiều rộng */
+        width: 100%;
+    }
+
+    .sidebar-toggle {
+        display: block; /* Hiện toggle button trên mobile */
+    }
 }

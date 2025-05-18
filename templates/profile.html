@@ -13,111 +13,136 @@
 <body>
     {% include 'topbar.html' %}
     <div class="container-fluid">
+        <div class="alert-container" id="alertContainer"></div>
         <div class="row">
             <!-- Sidebar -->
-            <div class="col-2 bg-light vh-100 p-0">
+            <div class="col-2 bg-light vh-100 p-0 sidebar-container">
                 {% include 'sidebar.html' %}
             </div>
 
             <!-- Main Content -->
-            <div class="col-9 main-content">
-                <div class="profile-container">
-                    <h2 class="section-title">Basic Information</h2>
-                    <p class="card-text">Basic details that will be a representation of yourself across the Hack The Box ecosystem.</p>
-                    <form id="profile-form" class="mt-4">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <img src="{{user_info.avatar_url or '/static/default-avatar.jpg'}}" alt="Avatar" class="avatar-img" id="avatar-img">
-                            </div>
-                            <div class="col-md-9">
-                                <p class="card-text">Upload your avatar</p>
-                                <p class="card-text">Avatar should be at least 300x300 pixels. We support .png, .jpg, .jpeg.</p>
-                                <button class="upload-btn" id="upload-btn"><i class="bi bi-upload card-icon"></i> Upload avatar</button>
-                                <i class="trash-icon bi bi-trash" id="trash-icon"></i>
-                                <input type="file" id="avatar-upload" style="display: none;" accept=".png,.jpg,.jpeg">
-                            </div>
+            <div class="col-10 main-content">
+                <div class="row g-4">
+                    <!-- Basic Information -->
+                    <div class="col-12">
+                        <div class="card shadow-sm rounded p-4 bg-white">
+                            <h2 class="section-title fw-bold mb-0"><i class="bi bi-person me-2"></i>Basic Information</h2>
+                            <p class="card-text text-muted small mb-4">Hello {{ user_info.username }}</p>
+                            <form id="profile-form" class="mt-4">
+                                <div class="row g-3">
+                                    <div class="col-md-3 text-center">
+                                        <img src="{{user_info.avatar_url or '/static/default-avatar.jpg'}}" alt="Avatar" class="avatar-img mb-2" id="avatar-img">
+                                        <button type="button" class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1 mx-auto" id="upload-btn">
+                                            <i class="bi bi-upload"></i> Upload Avatar
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1 mx-auto mt-2" id="trash-icon">
+                                            <i class="bi bi-trash"></i> Remove Avatar
+                                        </button>
+                                        <input type="file" id="avatar-upload" class="d-none" accept=".png,.jpg,.jpeg">
+                                        <small class="text-muted d-block mt-1">Min 300x300px, max 2MB, PNG/JPG/JPEG only</small>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <div class="row g-3">
+                                            <div class="col-md-6 position-relative">
+                                                <label for="username" class="form-label fw-semibold">Username</label>
+                                                <input type="text" class="form-control" id="username" value="{{user_info.username}}" disabled>
+                                                <span class="validation-icon"><i class="bi bi-check-circle text-success"></i></span>
+                                            </div>
+                                            <div class="col-md-6 position-relative">
+                                                <label for="full-name" class="form-label fw-semibold">Full Name</label>
+                                                <input type="text" class="form-control" id="full-name" value="{{user_info.fullname or '' }}">
+                                                <span class="validation-icon"><i class="bi bi-check-circle text-success"></i></span>
+                                            </div>
+                                            <div class="col-md-6 position-relative">
+                                                <label for="email" class="form-label fw-semibold">Email</label>
+                                                <input type="email" class="form-control" id="email" value="{{user_info.email or ''}}" disabled>
+                                                <span class="validation-icon"><i class="bi bi-check-circle text-success"></i></span>
+                                            </div>
+                                            <div class="col-md-6 position-relative">
+                                                <label for="date-of-birth" class="form-label fw-semibold">Date of Birth</label>
+                                                <input type="date" class="form-control" id="date-of-birth" value="{{user_info.date_of_birth or ''}}" max="{{ today }}">
+                                            </div>
+                                            <div class="col-md-6 position-relative">
+                                                <label for="country" class="form-label fw-semibold">Country</label>
+                                                <select class="form-select" id="country">
+                                                    <option value="">Select a country</option>
+                                                    <option value="Vietnam" {% if user_info.country == 'Vietnam' %}selected{% endif %}>Vietnam</option>
+                                                    <option value="United States" {% if user_info.country == 'United States' %}selected{% endif %}>United States</option>
+                                                    <option value="Japan" {% if user_info.country == 'Japan' %}selected{% endif %}>Japan</option>
+                                                    <option value="United Kingdom" {% if user_info.country == 'United Kingdom' %}selected{% endif %}>United Kingdom</option>
+                                                    <option value="Canada" {% if user_info.country == 'Canada' %}selected{% endif %}>Canada</option>
+                                                    <option value="Australia" {% if user_info.country == 'Australia' %}selected{% endif %}>Australia</option>
+                                                    <option value="Germany" {% if user_info.country == 'Germany' %}selected{% endif %}>Germany</option>
+                                                    <option value="France" {% if user_info.country == 'France' %}selected{% endif %}>France</option>
+                                                    <option value="China" {% if user_info.country == 'China' %}selected{% endif %}>China</option>
+                                                    <option value="India" {% if user_info.country == 'India' %}selected{% endif %}>India</option>
+                                                    <option value="Brazil" {% if user_info.country == 'Brazil' %}selected{% endif %}>Brazil</option>
+                                                </select>
+                                                <span class="validation-icon"><i class="bi bi-check-circle text-success"></i></span>
+                                            </div>
+                                            <div class="col-md-6 position-relative">
+                                                <label for="timezone" class="form-label fw-semibold">Timezone</label>
+                                                <select class="form-select" id="timezone">
+                                                    <option value="">Select a timezone</option>
+                                                    <option value="Asia/Ho_Chi_Minh" {% if user_info.timezone == 'Asia/Ho_Chi_Minh' %}selected{% endif %}>Asia/Ho_Chi_Minh</option>
+                                                    <option value="America/New_York" {% if user_info.timezone == 'America/New_York' %}selected{% endif %}>America/New_York</option>
+                                                    <option value="Asia/Tokyo" {% if user_info.timezone == 'Asia/Tokyo' %}selected{% endif %}>Asia/Tokyo</option>
+                                                    <option value="UTC" {% if user_info.timezone == 'UTC' %}selected{% endif %}>UTC</option>
+                                                    <option value="America/Los_Angeles" {% if user_info.timezone == 'America/Los_Angeles' %}selected{% endif %}>America/Los_Angeles</option>
+                                                    <option value="Europe/London" {% if user_info.timezone == 'Europe/London' %}selected{% endif %}>Europe/London</option>
+                                                    <option value="Europe/Paris" {% if user_info.timezone == 'Europe/Paris' %}selected{% endif %}>Europe/Paris</option>
+                                                    <option value="Australia/Sydney" {% if user_info.timezone == 'Australia/Sydney' %}selected{% endif %}>Australia/Sydney</option>
+                                                    <option value="Asia/Kolkata" {% if user_info.timezone == 'Asia/Kolkata' %}selected{% endif %}>Asia/Kolkata</option>
+                                                    <option value="America/Sao_Paulo" {% if user_info.timezone == 'America/Sao_Paulo' %}selected{% endif %}>America/Sao_Paulo</option>
+                                                </select>
+                                                <span class="validation-icon"><i class="bi bi-check-circle text-success"></i></span>
+                                            </div>
+                                            <div class="col-md-6 position-relative">
+                                                <label for="phone-number" class="form-label fw-semibold">Phone Number</label>
+                                                <input type="tel" class="form-control" id="phone-number" value="{{user_info.phone_number or ''}}" pattern="\+[0-9]{1,4}[0-9]{6,12}" title="Phone number must start with a '+' followed by country code and 6-12 digits (e.g., +1234567890)">
+                                            </div>
+                                            <div class="col-md-6 position-relative">
+                                                <label for="website" class="form-label fw-semibold">Website/Portfolio</label>
+                                                <input type="url" class="form-control" id="website" placeholder="https://yourwebsite.com" value="{{user_info.website or '' }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4 d-flex justify-content-center">
+                                    <button type="submit" class="btn btn-success btn-sm">
+                                        <i class="bi bi-save me-1"></i> Save Changes
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                    
-                        <div class="row">
-                            <div class="col-md-6 position-relative">
-                                <label for="username" class="form-label">Username</label>
-                                <input type="text" class="form-control" id="username" value="{{user_info.username}}" disabled>
-                                <span class="validation-icon"><i class="bi bi-check-circle text-success"></i></span>
+                    </div>
+
+                    <!-- Learning Progress -->
+                    <div class="col-12">
+                        <div class="card shadow-sm rounded p-4 bg-white">
+                            <h5 class="section-title fw-bold mb-3"><i class="bi bi-bar-chart me-2"></i>Learning Progress</h5>
+                            <div class="progress-container mb-3">
+                                <div class="progress-label fw-medium">DDoS</div>
+                                <div class="progress" style="height: 1.2rem;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">50%</div>
+                                </div>
                             </div>
-                            <div class="col-md-6 position-relative">
-                                <label for="full-name" class="form-label">Full Name</label>
-                                <input type="text" class="form-control" id="full-name" value="{{user_info.fullname or '' }}">
-                                <span class="validation-icon"><i class="bi bi-check-circle text-success"></i></span>
+                            <div class="progress-container mb-3">
+                                <div class="progress-label fw-medium">Server Side</div>
+                                <div class="progress" style="height: 1.2rem;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ progress['Server Side'] }}%;" aria-valuenow="{{ progress['Server Side'] }}" aria-valuemin="0" aria-valuemax="100">{{ progress['Server Side'] }}%</div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-md-6 position-relative">
-                                <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" value="{{user_info.email or ''}}" disabled>
-                                <span class="validation-icon"><i class="bi bi-check-circle text-success"></i></span>
-                            </div>
-                            <div class="col-md-6 position-relative">
-                                <label for="date-of-birth" class="form-label">Date of Birth</label>
-                                <input type="date" class="form-control" id="date-of-birth" value="{{user_info.date_of_birth}}">
-                            </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-md-6 position-relative">
-                                <label for="country" class="form-label">Country</label>
-                                <select class="form-control" id="country">
-                                    <option {% if user_info.country == 'Vietnam' %}selected{% endif %}>Vietnam</option>
-                                    <option {% if user_info.country == 'United States' %}selected{% endif %}>United States</option>
-                                    <option {% if user_info.country == 'Japan' %}selected{% endif %}>Japan</option>
-                                </select>
-                                <span class="validation-icon"><i class="bi bi-check-circle text-success"></i></span>
-                            </div>
-                            <div class="col-md-6 position-relative">
-                                <label for="timezone" class="form-label">Timezone</label>
-                                <select class="form-control" id="timezone">
-                                    <option {% if user_info.timezone == 'Asia/Ho_Chi_Minh' %}selected{% endif %}>Asia/Ho_Chi_Minh</option>
-                                    <option {% if user_info.timezone == 'America/New_York' %}selected{% endif %}>America/New_York</option>
-                                    <option {% if user_info.timezone == 'Asia/Tokyo' %}selected{% endif %}>Asia/Tokyo</option>
-                                </select>
-                                <span class="validation-icon"><i class="bi bi-check-circle text-success"></i></span>
-                            </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-md-6 position-relative">
-                                <label for="phone-number" class="form-label">Phone Number</label>
-                                <input type="text" class="form-control" id="phone-number" value="{{user_info.phone_number or ''}}">
-                            </div>
-                            <div class="col-md-6 position-relative">
-                                <label for="website" class="form-label">Website/Portfolio</label>
-                                <input type="text" class="form-control" id="website" placeholder="https://yourwebsite.com" value="{{user_info.website or '' }}">
-                            </div>
-                        </div>
-                        <button type="submit" class="btn-save mt-4"><i class="bi bi-save card-icon"></i> Save changes</button>
-                    </form>
-                    <div class="row mt-3">
-                        <div class="col-md-12">
-                            <h5 class="section-title">Learning Progress</h5>
-                            <div class="progress-container">
-                                <div class="progress-label">DDoS</div>
-                                <div class="progress">
-                                    <div class="progress-bar" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">50%</div>
+                            <div class="progress-container mb-3">
+                                <div class="progress-label fw-medium">Client Side</div>
+                                <div class="progress" style="height: 1.2rem;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ progress['Client Side'] }}%;" aria-valuenow="{{ progress['Client Side'] }}" aria-valuemin="0" aria-valuemax="100">{{ progress['Client Side'] }}%</div>
                                 </div>
                             </div>
                             <div class="progress-container">
-                                <div class="progress-label">Server Side</div>
-                                <div class="progress">
-                                    <div class="progress-bar" role="progressbar" style="width: 70%;" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100">70%</div>
-                                </div>
-                            </div>
-                            <div class="progress-container">
-                                <div class="progress-label">Client Side</div>
-                                <div class="progress">
-                                    <div class="progress-bar" role="progressbar" style="width: 30%;" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100">30%</div>
-                                </div>
-                            </div>
-                            <div class="progress-container">
-                                <div class="progress-label">Advanced</div>
-                                <div class="progress">
-                                    <div class="progress-bar" role="progressbar" style="width: 20%;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">20%</div>
+                                <div class="progress-label fw-medium">Advanced</div>
+                                <div class="progress" style="height: 1.2rem;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ progress['Advanced'] }}%;" aria-valuenow="{{ progress['Advanced'] }}" aria-valuemin="0" aria-valuemax="100">{{ progress['Advanced'] }}%</div>
                                 </div>
                             </div>
                         </div>
@@ -126,8 +151,9 @@
             </div>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/static/js/profile.js"></script>
 </body>
 </html>

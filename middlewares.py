@@ -1,20 +1,20 @@
 from fastapi import Request, status
 from fastapi.responses import Response, RedirectResponse
-from database.auth import verify_access_token, get_current_user
+from database.auth import verify_access_token, get_current_user, get_current_user_avatar
 
 # middleware: check access_token before run into api
 async def check_access_token(request: Request, call_next):
     # ignore /login and /static, ...
-    if request.url.path in ["/login", "/", "/favicon.ico", "/register", "/verify"] or request.url.path.startswith("/static") or request.url.path.startswith("/api/v1") or request.url.path.startswith("/ddos-bot/beacon"):
+    if request.url.path in ["/login", "/", "/favicon.ico", "/register", "/forgot-password"] or request.url.path.startswith("/static") or request.url.path.startswith("/api/v1") or request.url.path.startswith("/ddos-bot/beacon") or request.url.path.startswith("/uploads/") or request.url.path.startswith( "/verify/") or request.url.path.startswith( "/reset-password" ):
         return await call_next(request)
     try:
         token = request.cookies.get("access_token")
         print("token: ", token)
-        user = None
+        username = None
         if token:
-            user = verify_access_token(token)
-            print("user: ", user)
-        if not token or not user:
+            username = verify_access_token(token)
+            print("user: ", username)
+        if not token or not username:
             reason = "No token" if not token else "Invalid or expired token"
             print("Redirecting to login, reason: ", reason)
             response = RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
@@ -27,8 +27,10 @@ async def check_access_token(request: Request, call_next):
                 samesite="lax"
             )
             return response
-        
-        request.state.user = await get_current_user(user)
+        request.state.user = await get_current_user(username)
+        request.state.avatar = await get_current_user_avatar(request.state.user["id"])
+        if request.url.path.startswith("/admin") and request.state.user["role"] != "admin":
+            return Response(status_code=status.HTTP_403_FORBIDDEN, content="FORBIDDEN")
         # after all check, run into api
         response: Response =  await call_next(request)
         return response

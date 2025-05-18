@@ -2,10 +2,13 @@
 
 <nav class="navbar navbar-expand-lg fixed-top">
     <div class="container-fluid">
+        <!-- Toggle Button cho mobile -->
+        <button class="sidebar-toggle" aria-label="Toggle Sidebar">
+            <i class="bi bi-list"></i>
+        </button>
         <!-- Logo and Search -->
         <div class="d-flex align-items-center">
             <a class="navbar-brand" href="/dashboard">
-                <img src="https://cdn-icons-png.flaticon.com/512/3067/3067899.png" alt="Cube">
                 C2 Academy
             </a>
             <form class="search-form d-flex" role="search">
@@ -24,8 +27,8 @@
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
             <li class="nav-item dropdown">
                 <a class="user-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-person-circle nav-icon"></i>
-                    <span class="username">masterofblafu</span>
+                    <img src="{{ avatar if avatar else '/static/default-avatar.jpg' }}" alt="Avatar" class="rounded-circle me-2" width="30" height="30" styles="object-fit: cover;">
+                    <span class="username">{{ username }}</span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                     <li><a class="dropdown-item" href="/profile">Profile</a></li>

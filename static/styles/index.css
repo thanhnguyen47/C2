@@ -3,7 +3,6 @@ body {
 }
 
 .main-content {
-    /* margin-left: 200px; Đẩy nội dung chính sang phải bằng độ rộng sidebar */
     padding: 20px; /* Khoảng cách padding cho nội dung */
     margin-top: 50px;
 }

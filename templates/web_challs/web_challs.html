@@ -18,7 +18,7 @@
         </div>
         <div class="row">
             <!-- Sidebar -->
-            <div class="col-2 bg-light vh-100 p-0">
+            <div class="col-2 bg-light vh-100 p-0 sidebar-container">
                 {% include 'sidebar.html' %}
             </div>
 
@@ -30,244 +30,55 @@
                     <!-- Server-Side Section -->
                     <h3 class="mt-4 section-title">Server-Side Topics</h3>
                     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
-                        <!-- SQL Injection -->
+                        {% for topic in server_side_topics %}
                         <div class="col">
-                            <a href="/web/sql-injection" class="text-decoration-none">
+                            <a href="/web/{{ topic.slug }}" class="text-decoration-none">
                                 <div class="card h-100 shadow-sm">
                                     <div class="card-body">
-                                        <i class="bi bi-database-fill card-icon"></i>
-                                        <h5 class="card-title fw-semibold">SQL Injection</h5>
-                                        <p class="card-text">Exploit vulnerable SQL queries to extract or modify data.</p>
+                                        <i class="bi {{ topic.icon }} card-icon"></i>
+                                        <h5 class="card-title fw-semibold">{{ topic.title }}</h5>
+                                        <p class="card-text">{{ topic.short_description }}</p>
                                     </div>
                                 </div>
                             </a>
                         </div>
-                        <!-- Authentication -->
-                        <div class="col">
-                            <a href="/web/authentication" class="text-decoration-none">
-                                <div class="card h-100 shadow-sm">
-                                    <div class="card-body">
-                                        <i class="bi bi-shield-lock-fill card-icon"></i>
-                                        <h5 class="card-title fw-semibold">Authentication</h5>
-                                        <p class="card-text">Understand and exploit flaws in login and session management.</p>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                        <!-- Path Traversal -->
-                        <div class="col">
-                            <a href="/web/path-traversal" class="text-decoration-none">
-                                <div class="card h-100 shadow-sm">
-                                    <div class="card-body">
-                                        <i class="bi bi-folder-fill card-icon"></i>
-                                        <h5 class="card-title fw-semibold">Path Traversal</h5>
-                                        <p class="card-text">Bypass access controls to read sensitive files on the server.</p>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                        <!-- Command Injection -->
-                        <div class="col">
-                            <a href="/web/command-injection" class="text-decoration-none">
-                                <div class="card h-100 shadow-sm">
-                                    <div class="card-body">
-                                        <i class="bi bi-terminal-fill card-icon"></i>
-                                        <h5 class="card-title fw-semibold">Command Injection</h5>
-                                        <p class="card-text">Inject system commands to execute on the server.</p>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                        <!-- Access Control -->
-                        <div class="col">
-                            <a href="/web/access-control" class="text-decoration-none">
-                                <div class="card h-100 shadow-sm">
-                                    <div class="card-body">
-                                        <i class="bi bi-lock-fill card-icon"></i>
-                                        <h5 class="card-title fw-semibold">Access Control</h5>
-                                        <p class="card-text">Bypass restrictions to access unauthorized functionality or data.</p>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                        <!-- File Upload Vulnerabilities -->
-                        <div class="col">
-                            <a href="/web/file-upload" class="text-decoration-none">
-                                <div class="card h-100 shadow-sm">
-                                    <div class="card-body">
-                                        <i class="bi bi-upload card-icon"></i>
-                                        <h5 class="card-title fw-semibold">File Upload Vulnerabilities</h5>
-                                        <p class="card-text">Bypass filters to upload malicious files like web shells.</p>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                        <!-- Race Conditions -->
-                        <div class="col">
-                            <a href="/web/race-condition" class="text-decoration-none">
-                                <div class="card h-100 shadow-sm">
-                                    <div class="card-body">
-                                        <i class="bi bi-clock-fill card-icon"></i>
-                                        <h5 class="card-title fw-semibold">Race Conditions</h5>
-                                        <p class="card-text">Exploit timing issues in applications to gain unauthorized access.</p>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                        <!-- Server-Side Request Forgery (SSRF) -->
-                        <div class="col">
-                            <a href="/web/ssrf" class="text-decoration-none">
-                                <div class="card h-100 shadow-sm">
-                                    <div class="card-body">
-                                        <i class="bi bi-server card-icon"></i>
-                                        <h5 class="card-title fw-semibold">Server-Side Request Forgery (SSRF)</h5>
-                                        <p class="card-text">Exploit server-side applications to make requests on behalf of the server.</p>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                        <!-- XXE Injection -->
-                        <div class="col">
-                            <a href="/web/xxe-injection" class="text-decoration-none">
-                                <div class="card h-100 shadow-sm">
-                                    <div class="card-body">
-                                        <i class="bi bi-file-code-fill card-icon"></i>
-                                        <h5 class="card-title fw-semibold">XXE Injection</h5>
-                                        <p class="card-text">Exploit XML parsers to read arbitrary files or make network requests.</p>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                        <!-- NoSQL Injection -->
-                        <div class="col">
-                            <a href="/web/nosql-injection" class="text-decoration-none">
-                                <div class="card h-100 shadow-sm">
-                                    <div class="card-body">
-                                        <i class="bi bi-database-fill card-icon"></i>
-                                        <h5 class="card-title fw-semibold">NoSQL Injection</h5>
-                                        <p class="card-text">Exploit NoSQL databases by injecting malicious queries.</p>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
+                        {% endfor %}
                     </div>
             
                     <!-- Client-Side Section -->
                     <h3 class="mt-5 section-title">Client-Side Topics</h3>
                     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
-                        <!-- XSS -->
+                        {% for topic in client_side_topics %}
                         <div class="col">
-                            <a href="/web/xss" class="text-decoration-none">
+                            <a href="/web/{{ topic.slug }}" class="text-decoration-none">
                                 <div class="card h-100 shadow-sm">
                                     <div class="card-body">
-                                        <i class="bi bi-code-slash card-icon"></i>
-                                        <h5 class="card-title fw-semibold">Cross-Site Scripting (XSS)</h5>
-                                        <p class="card-text">Inject malicious scripts into web pages viewed by other users.</p>
+                                        <i class="bi {{ topic.icon }} card-icon"></i>
+                                        <h5 class="card-title fw-semibold">{{ topic.title }}</h5>
+                                        <p class="card-text">{{ topic.short_description }}</p>
                                     </div>
                                 </div>
                             </a>
                         </div>
-                        <!-- CSRF -->
-                        <div class="col">
-                            <a href="/web/csrf" class="text-decoration-none">
-                                <div class="card h-100 shadow-sm">
-                                    <div class="card-body">
-                                        <i class="bi bi-link-45deg card-icon"></i>
-                                        <h5 class="card-title fw-semibold">Cross-Site Request Forgery (CSRF)</h5>
-                                        <p class="card-text">Exploit authenticated users to perform unintended actions.</p>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                        <!-- CORS -->
-                        <div class="col">
-                            <a href="/web/cors" class="text-decoration-none">
-                                <div class="card h-100 shadow-sm">
-                                    <div class="card-body">
-                                        <i class="bi bi-globe card-icon"></i>
-                                        <h5 class="card-title fw-semibold">Cross-Origin Resource Sharing (CORS)</h5>
-                                        <p class="card-text">Misconfigurations that allow unauthorized access to resources.</p>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                        <!-- Clickjacking -->
-                        <div class="col">
-                            <a href="/web/clickjacking" class="text-decoration-none">
-                                <div class="card h-100 shadow-sm">
-                                    <div class="card-body">
-                                        <i class="bi bi-cursor-fill card-icon"></i>
-                                        <h5 class="card-title fw-semibold">Clickjacking</h5>
-                                        <p class="card-text">Trick users into clicking on something different from what they intend.</p>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                        <!-- DOM-Based Vulnerabilities -->
-                        <div class="col">
-                            <a href="/web/dom-based-vulnerabilities" class="text-decoration-none">
-                                <div class="card h-100 shadow-sm">
-                                    <div class="card-body">
-                                        <i class="bi bi-window card-icon"></i>
-                                        <h5 class="card-title fw-semibold">DOM-Based Vulnerabilities</h5>
-                                        <p class="card-text">Manipulate client-side code execution and access user data.</p>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
+                        {% endfor %}
                     </div>
             
                     <!-- Advanced Section -->
                     <h3 class="mt-5 section-title">Advanced Topics</h3>
                     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
-                        <!-- Insecure Deserialization -->
+                        {% for topic in advanced_topics %}
                         <div class="col">
-                            <a href="/web/insecure-deserialization" class="text-decoration-none">
+                            <a href="/web/{{ topic.slug }}" class="text-decoration-none">
                                 <div class="card h-100 shadow-sm">
                                     <div class="card-body">
-                                        <i class="bi bi-file-binary-fill card-icon"></i>
-                                        <h5 class="card-title fw-semibold">Insecure Deserialization</h5>
-                                        <p class="card-text">Exploit deserialization vulnerabilities to execute arbitrary code.</p>
+                                        <i class="bi {{ topic.icon }} card-icon"></i>
+                                        <h5 class="card-title fw-semibold">{{ topic.title }}</h5>
+                                        <p class="card-text">{{ topic.short_description }}</p>
                                     </div>
                                 </div>
                             </a>
                         </div>
-                        <!-- Server-Side Template Injection -->
-                        <div class="col">
-                            <a href="/web/ssti" class="text-decoration-none">
-                                <div class="card h-100 shadow-sm">
-                                    <div class="card-body">
-                                        <i class="bi bi-file-code-fill card-icon"></i>
-                                        <h5 class="card-title fw-semibold">Server-Side Template Injection (SSTI)</h5>
-                                        <p class="card-text">Inject malicious template code into the server-side rendering engine.</p>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                        <!-- OAuth Authentication -->
-                        <div class="col">
-                            <a href="/web/oauth" class="text-decoration-none">
-                                <div class="card h-100 shadow-sm">
-                                    <div class="card-body">
-                                        <i class="bi bi-person-check-fill card-icon"></i>
-                                        <h5 class="card-title fw-semibold">OAuth Authentication</h5>
-                                        <p class="card-text">Bypass OAuth authorization to gain unauthorized access.</p>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                        <!-- JWT (JSON Web Tokens) -->
-                        <div class="col">
-                            <a href="/web/jwt" class="text-decoration-none">
-                                <div class="card h-100 shadow-sm">
-                                    <div class="card-body">
-                                        <i class="bi bi-key-fill card-icon"></i>
-                                        <h5 class="card-title fw-semibold">JWT (JSON Web Tokens)</h5>
-                                        <p class="card-text">Exploit weaknesses in JWT handling for unauthorized access.</p>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>

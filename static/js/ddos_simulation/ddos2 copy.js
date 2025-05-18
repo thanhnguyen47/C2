@@ -1,14 +1,15 @@
-// DOM elements
 const startBtn = document.getElementById('startBtn');
 const attackBtn = document.getElementById('attackBtn');
 const endSimulationBtn = document.getElementById('endSimulationBtn');
+const refreshChartBtn = document.getElementById('refreshChartBtn');
+const exportPcapBtn = document.getElementById('exportPcapBtn');
 const attackConfigSection = document.getElementById('attackConfigSection');
 const attackBtnContainer = document.getElementById('attackBtnContainer');
 const alertContainer = document.getElementById('alertContainer');
 const attackTypeSelect = document.getElementById('attackType');
 const httpFloodOptions = document.getElementById('httpFloodOptions');
 const synFloodOptions = document.getElementById('synFloodOptions');
-const icmpFloodOptions = document.getElementById('icmpFloodOptions');
+const udpFloodOptions = document.getElementById('udpFloodOptions');
 const spoofHeadersCheckbox = document.getElementById('spoofHeaders');
 const customHeadersSection = document.getElementById('customHeadersSection');
 const targetUrlInput = document.getElementById('targetUrl');
@@ -19,10 +20,11 @@ const spoofHeadersInput = document.getElementById('spoofHeaders');
 const customHeadersInput = document.getElementById('customHeaders');
 const synTargetPortInput = document.getElementById('synTargetPort');
 const synSpoofIpInput = document.getElementById('synSpoofIp');
-const icmpTargetIpInput = document.getElementById('icmpTargetIp');
-const icmpSpoofIpInput = document.getElementById('icmpSpoofIp');
+const udpTargetPortInput = document.getElementById('udpTargetPort');
+const packetSizeInput = document.getElementById('packetSize');
+const udpSpoofIpInput = document.getElementById('udpSpoofIp');
 
-// Display alert message
+// Hàm hiển thị thông báo
 const showAlert = (message, type = "success") => {
     const alert = document.createElement("div");
     alert.className = `alert alert-${type} alert-dismissible fade show`;
@@ -31,7 +33,7 @@ const showAlert = (message, type = "success") => {
     setTimeout(() => alert.remove(), 5000);
 };
 
-// Toggle button spinner
+// Hàm bật/tắt spinner
 const toggleSpinner = (button, show) => {
     const spinner = button.querySelector(".spinner-border");
     if (spinner) {
@@ -40,22 +42,23 @@ const toggleSpinner = (button, show) => {
     }
 };
 
-// Toggle attack-specific options
+// Hàm toggle options dựa trên attack type
 const toggleAttackOptions = (attackType) => {
     httpFloodOptions.classList.toggle('d-none', attackType !== 'HTTP_FLOOD');
     synFloodOptions.classList.toggle('d-none', attackType !== 'SYN_FLOOD');
-    icmpFloodOptions.classList.toggle('d-none', attackType !== 'ICMP_FLOOD');
+    udpFloodOptions.classList.toggle('d-none', attackType !== 'UDP_FLOOD');
 };
 
-// Display status message
+// Hàm hiển thị thông báo trạng thái
 const showMessage = (elementId, message, isError) => {
     const element = document.getElementById(elementId);
     element.textContent = message;
     element.className = `mt-2 text-sm ${isError ? 'text-danger' : 'text-success'}`;
 };
 
-// Update UI based on attack state
+// Hàm cập nhật UI dựa trên trạng thái tấn công
 const updateAttackUI = (isAttacking, attackDetails = null, targetUrl = null) => {
+    // Cập nhật target URL và các section
     if (targetUrl) {
         targetUrlInput.value = targetUrl;
         attackConfigSection.classList.remove('d-none');
@@ -66,8 +69,10 @@ const updateAttackUI = (isAttacking, attackDetails = null, targetUrl = null) => 
         attackBtnContainer.classList.add('d-none');
     }
 
+    // Cập nhật bot count
     botCountInput.value = attackDetails?.bot_count || 1;
 
+    // Cập nhật configuration inputs
     if (isAttacking && attackDetails) {
         attackTypeSelect.value = attackDetails.attack_type || 'HTTP_FLOOD';
         toggleAttackOptions(attackDetails.attack_type);
@@ -81,9 +86,10 @@ const updateAttackUI = (isAttacking, attackDetails = null, targetUrl = null) => 
         } else if (attackDetails.attack_type === 'SYN_FLOOD') {
             synTargetPortInput.value = attackDetails.target_port || '';
             synSpoofIpInput.checked = attackDetails.spoof_ip || false;
-        } else if (attackDetails.attack_type === 'ICMP_FLOOD') {
-            icmpTargetIpInput.value = attackDetails.target_ip || '';
-            icmpSpoofIpInput.checked = attackDetails.spoof_ip || false;
+        } else if (attackDetails.attack_type === 'UDP_FLOOD') {
+            udpTargetPortInput.value = attackDetails.target_port || '';
+            packetSizeInput.value = attackDetails.packet_size || '';
+            udpSpoofIpInput.checked = attackDetails.spoof_ip || false;
         }
     } else {
         attackTypeSelect.value = 'HTTP_FLOOD';
@@ -95,22 +101,24 @@ const updateAttackUI = (isAttacking, attackDetails = null, targetUrl = null) => 
         customHeadersInput.value = '{}';
         synTargetPortInput.value = '';
         synSpoofIpInput.checked = false;
-        icmpTargetIpInput.value = '';
-        icmpSpoofIpInput.checked = false;
+        udpTargetPortInput.value = '';
+        packetSizeInput.value = '';
+        udpSpoofIpInput.checked = false;
     }
 
+    // Cập nhật trạng thái tấn công
     if (isAttacking && attackDetails) {
-        attackBtn.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> Attacking...';
-        attackBtn.disabled = true;
+        // attackBtn.innerHTML = '<i class="bi bi-pause-fill"></i> Stop';
+        attackBtn.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> Attackin...'
+        attackBtn.disabled=true
         attackBtn.classList.replace('btn-danger', 'btn-secondary');
     } else {
         attackBtn.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> Attack';
-        attackBtn.disabled = false;
         attackBtn.classList.replace('btn-secondary', 'btn-danger');
     }
 };
 
-// Initialize attack state
+// Hàm khởi tạo trạng thái tấn công
 const initializeAttackState = async () => {
     try {
         const response = await fetch('/ddos/get-status', { headers: { 'Content-Type': 'application/json' } });
@@ -126,7 +134,7 @@ const initializeAttackState = async () => {
     }
 };
 
-// DOM event listeners
+// Sự kiện DOM
 document.addEventListener("DOMContentLoaded", () => {
     // Toggle Custom Headers
     spoofHeadersCheckbox.addEventListener('change', () => {
@@ -176,9 +184,6 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const statusResponse = await fetch('/ddos/get-status', { headers: { 'Content-Type': 'application/json' } });
             const statusResult = await statusResponse.json();
-            if (!statusResponse.ok) {
-                throw new Error(statusResult.message || 'Failed to get attack status');
-            }
             const isAttacking = statusResult.is_attacking;
 
             if (!isAttacking) {
@@ -209,7 +214,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     custom_headers: {},
                     target_port: null,
                     spoof_ip: false,
-                    target_ip: null
+                    packet_size: null
                 };
 
                 if (attackType === 'HTTP_FLOOD') {
@@ -233,14 +238,20 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                     attackConfig.target_port = synTargetPort;
                     attackConfig.spoof_ip = synSpoofIpInput.checked;
-                } else if (attackType === 'ICMP_FLOOD') {
-                    const icmpTargetIp = icmpTargetIpInput.value;
-                    if (!icmpTargetIp || !/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(icmpTargetIp)) {
-                        showAlert('Please enter a valid Target IP for ICMP Flood.', "danger");
+                } else if (attackType === 'UDP_FLOOD') {
+                    const udpTargetPort = parseInt(udpTargetPortInput.value);
+                    const packetSize = parseInt(packetSizeInput.value);
+                    if (isNaN(udpTargetPort) || udpTargetPort <= 0 || udpTargetPort > 65535) {
+                        showAlert('Target Port for UDP Flood must be between 1 and 65535.', "danger");
                         return;
                     }
-                    attackConfig.target_ip = icmpTargetIp;
-                    attackConfig.spoof_ip = icmpSpoofIpInput.checked;
+                    if (isNaN(packetSize) || packetSize <= 0) {
+                        showAlert('Packet Size for UDP Flood must be a positive number.', "danger");
+                        return;
+                    }
+                    attackConfig.target_port = udpTargetPort;
+                    attackConfig.packet_size = packetSize;
+                    attackConfig.spoof_ip = udpSpoofIpInput.checked;
                 }
 
                 toggleSpinner(attackBtn, true);
@@ -263,21 +274,20 @@ document.addEventListener("DOMContentLoaded", () => {
                         spoof_headers: attackConfig.spoof_headers,
                         custom_headers: attackConfig.custom_headers,
                         spoof_ip: attackConfig.spoof_ip,
+                        packet_size: attackConfig.packet_size,
                         target_port: attackConfig.target_port,
-                        target_ip: attackConfig.target_ip,
                         bot_count: statusResult.attack_details?.bot_count || botCountInput.value
                     }, targetUrl);
                     showAlert(`Attack started on ${targetUrl}`, "success");
                 } else {
                     throw new Error(result.detail || result.message || 'Failed to launch attack');
                 }
-            } else {
-                showAlert('Attack is already in progress.', "warning");
             }
         } catch (error) {
             showAlert(`Error: ${error.message}`, "danger");
         } finally {
             toggleSpinner(attackBtn, false);
+            attackBtn.innerHTML = isAttacking ? '<i class="bi bi-pause-fill"></i> Stop' : '<i class="bi bi-exclamation-triangle-fill"></i> Attack';
         }
     });
 
@@ -312,8 +322,7 @@ document.addEventListener("DOMContentLoaded", () => {
             toggleSpinner(endSimulationBtn, false);
         }
     });
-
-    // Initialize
+    // Khởi tạo
     toggleAttackOptions('HTTP_FLOOD');
     initializeAttackState();
 });

@@ -3,55 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interact with bot 0</title>
+    <title>Interact with bot {{ bot.token }}</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="/static/styles/ddos_simulation/bot_c2.css">
+    <link rel="stylesheet" href="/static/styles/index.css">
 </head>
 <body>
+    {% include 'topbar.html' %}
     <div class="container-fluid">
         <div class="row">
-             <!-- Sidebar -->
-             <div class="col-2 bg-light vh-100 p-0">
+            <!-- Sidebar -->
+            <div class="col-2 bg-light vh-100 p-0 sidebar-container">
                 {% include 'sidebar.html' %}
             </div>
 
             <!-- Main Content -->
-            <div class="col-10">
+            <div class="col-10 main-content">
                 <div class="py-4">
-                    <h2>INTERACT {{ bot.token }}</h2>
-                    <p>{{ bot.status }}</p>
+                    <h2 class="text-center text-md-start">Interact with {{ bot.token }}</h2>
+                    <p class="text-center text-md-start">{{ bot.status }}</p>
                 </div>
-    
-                <div class="row">
-                    <!-- command section -->
-                    <div class="col-md-8 bg-dark position-relative rounded" >
-                        <div class="cmd-section text-white p-3">
-                            <!-- cmd history -->
-                            <div class="cmd-history mb-3">
-                                {% for log in logs %}
-                                    <div class="cmd-message text-success fw-bold fs-6 {% if log.status == 'pending' %}waiting{% endif %}">
-                                        {{ log.directory }} > {{ log.command }} {% if log.status == 'pending' %} (waiting...) {% endif %}
-                                    </div>
-                                    {% if log.result %}
-                                        <div class="cmd-message text-white">
-                                            {{ log.result }}
+
+                <div class="row g-4">
+                    <!-- Command Section -->
+                    <div class="col-12 col-md-8">
+                        <div class="bg-dark position-relative rounded h-100">
+                            <div class="cmd-section text-white p-3 h-100 d-flex flex-column">
+                                <!-- Command History -->
+                                <div class="cmd-history mb-3 flex-grow-1">
+                                    {% for log in logs %}
+                                        <div class="cmd-message text-success fw-bold fs-6 {% if log.status == 'pending' %}waiting{% endif %}">
+                                            {{ log.directory }} > {{ log.command }} {% if log.status == 'pending' %} (waiting...) {% endif %}
                                         </div>
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                            <form id="command-form" class="cmd-input d-flex align-items-center" bot-token="{{bot.token}}">
-                                <div class="d-flex align-items-center w-100">
-                                    <label for="command" class="text-white me-2" id="currentDirectory">{{ bot_info.current_directory }}> </label>
-                                    <input type="text" name="command" id="command" class="form-control me-2" required autocomplete="off">
-                                    <button type="submit" class="btn btn-cmd">Send</button>
+                                        {% if log.result %}
+                                            <div class="cmd-message text-white">
+                                                {{ log.result }}
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
                                 </div>
-                            </form>
+                                <form id="command-form" class="cmd-input d-flex align-items-center" bot-token="{{bot.token}}">
+                                    <div class="d-flex align-items-center w-100">
+                                        <label for="command" class="text-white me-2" id="currentDirectory">{{ bot_info.current_directory }}> </label>
+                                        <input type="text" name="command" id="command" class="form-control me-2" required autocomplete="off">
+                                        <button type="submit" class="btn btn-cmd">Send</button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
-                    <!-- session details -->
-                    <div class="col-md-4">
-                        <div class="bg-white p-3 shadow session-details rounded">
+                    <!-- Session Details -->
+                    <div class="col-12 col-md-4">
+                        <div class="bg-white p-3 shadow session-details rounded h-100">
                             <h5>Session Details</h5>
                             <p><strong>Username: </strong>{{ bot_info.username }}</p>
                             <p><strong>Hostname: </strong>{{ bot_info.hostname }}</p>
@@ -60,24 +65,25 @@
                             <p><strong>CPU: </strong>{{ bot_info.cpu }}</p>
                             <p><strong>GPU: </strong>{{ bot_info.gpu }}</p>
                             <p><strong>Disk: </strong>{{ bot_info.disk }}</p>
-                            <!-- <p><strong>Process ID: </strong>10jqk</p> -->
                         </div>
                     </div>
                 </div>
-    
-                <!-- actions -->
+
+                <!-- Actions -->
                 <div class="row mt-5">
-                    <div class="actions d-flex gap-5 justify-content-left">
-                        <button type="button" class="btn-action btn btn-secondary">Upload File</button>
-                        <button type="button" class="btn-action btn btn-secondary">Download File</button>
-                        <button type="button" class="btn-action btn btn-secondary">Take a Picture</button>
+                    <div class="col-12">
+                        <div class="actions d-flex gap-3 flex-wrap justify-content-center justify-content-md-start">
+                            <button type="button" class="btn-action btn btn-secondary">Upload File</button>
+                            <button type="button" class="btn-action btn btn-secondary">Download File</button>
+                            <button type="button" class="btn-action btn btn-secondary">Take a Picture</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <script src="/static/js/ddos_simulation/bot_c2.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="/static/js/ddos_simulation/bot_c2.js"></script>
 </body>
 </html>

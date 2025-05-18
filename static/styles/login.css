@@ -1,0 +1,117 @@
+
+body {
+    background-image: url('/static/background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-color: #1e3c72; /* Fallback color */
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', sans-serif;
+    position: relative;
+}
+body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Dark overlay */
+    z-index: 1;
+}
+.login-container {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    padding: 2rem;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 2; /* Above overlay */
+}
+.login-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+}
+.form-title {
+    font-weight: 700;
+    color: #1e3c72;
+    margin-bottom: 1.5rem;
+}
+.form-control {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    transition: border-color 0.2s ease;
+}
+.form-control:focus {
+    border-color: #2a5298;
+    box-shadow: 0 0 0 0.2rem rgba(42, 82, 152, 0.25);
+}
+.btn-custom {
+    border-radius: 8px;
+    padding: 0.75rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+.btn-custom:hover {
+    transform: scale(1.05);
+}
+.btn-primary {
+    background: #2a5298;
+    border: none;
+}
+.btn-success {
+    background: #28a745;
+    border: none;
+}
+.btn-warning {
+    background: #ffc107;
+    border: none;
+    color: #212529;
+}
+.link-custom {
+    color: #2a5298;
+    text-decoration: none;
+    font-weight: 500;
+}
+.link-custom:hover {
+    text-decoration: underline;
+}
+.form-switcher {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+.form-container {
+    animation: fadeIn 0.5s ease;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.alert-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    width: 300px;
+}
+.password-requirements {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+@media (max-width: 576px) {
+    .login-container {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+    .form-title {
+        font-size: 1.5rem;
+    }
+    .btn-custom {
+        padding: 0.6rem;
+    }
+}

@@ -6,9 +6,8 @@
     <title>DDoS Simulation Panel</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="/static/styles/index.css">
-    <link rel="stylesheet" href="/static/style/ddos-simulation/ddos.css">
+    <link rel="stylesheet" href="/static/styles/ddos_simulation/ddos.css">
 </head>
 <body>
     <div class="container-fluid">
@@ -17,17 +16,235 @@
         </div>
         <div class="row">
             <!-- Sidebar -->
-            <div class="col-2 bg-light vh-100 p-0">
+            <div class="col-2 bg-light vh-100 p-0 sidebar-container">
                 {% include 'sidebar.html' %}
             </div>
 
             <!-- Main Content -->
             <div class="main-content col-10">
                 <div class="py-4">
-                    <h2 class="display-5 fw-bold mb-4">DDoS in a box</h2>
+                    <h2 class="form-title display-5 fw-bold mb-4">DDoS in a Box</h2>
+                    <div class="alert-container" id="alertContainer"></div>
 
+                    <!-- Documentation Card with Learning Content -->
+                    <div class="documentation-card">
+                        <h5 class="section-title">Learning DDoS: Theory, Impact, Prevention, Tools, and Simulation</h5>
+                        <p>Explore DDoS attacks using the <strong>DDoS Simulation Panel</strong> below to simulate attacks while learning.</p>
+                        <div class="accordion" id="ddosLearningAccordion">
+                            <!-- Part 1: Theory -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#theoryCollapse" aria-expanded="true" aria-controls="theoryCollapse">
+                                        1. DDoS Theory
+                                    </button>
+                                </h2>
+                                <div id="theoryCollapse" class="accordion-collapse collapse show" data-bs-parent="#ddosLearningAccordion">
+                                    <div class="accordion-body">
+                                        <p><strong>DDoS (Distributed Denial of Service)</strong> is an attack where multiple compromised systems (botnets) flood a target with excessive requests or packets, overwhelming its resources and disrupting service availability.</p>
+                                        <h6>Types of DDoS Attacks</h6>
+                                        <ul>
+                                            <li><strong>HTTP Flood</strong>: Overloads a web server with numerous HTTP requests (GET/POST), exhausting CPU and memory. Targets the application layer (Layer 7).</li>
+                                            <li><strong>SYN Flood</strong>: Sends a barrage of TCP SYN packets to fill the target's connection state table, blocking legitimate connections. Targets the transport layer (Layer 4).</li>
+                                            <li><strong>ICMP Flood</strong>: Floods the target with ICMP Echo Request (ping) packets, consuming bandwidth and processing power. Targets the network layer (Layer 3).</li>
+                                        </ul>
+                                        <h6>How It Works</h6>
+                                        <ul>
+                                            <li><strong>Botnet</strong>: A network of infected devices controlled by a Command and Control (C2) server to execute attacks.</li>
+                                            <li><strong>C2 Server</strong>: Issues commands to the botnet via this panel's interface.</li>
+                                            <li><strong>Target</strong>: A web server, application, or network infrastructure (e.g., IP <code>172.20.0.2</code>).</li>
+                                        </ul>
+                                        <p class="hint-text">Try selecting <code>HTTP_FLOOD</code> in the panel to simulate a Layer 7 attack!</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Part 2: Impact -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#impactCollapse" aria-expanded="false" aria-controls="impactCollapse">
+                                        2. DDoS Impact
+                                    </button>
+                                </h2>
+                                <div id="impactCollapse" class="accordion-collapse collapse" data-bs-parent="#ddosLearningAccordion">
+                                    <div class="accordion-body">
+                                        <p>DDoS attacks cause significant damage to systems, businesses, and end-users.</p>
+                                        <h6>On Systems</h6>
+                                        <ul>
+                                            <li><strong>Resource Overload</strong>: CPU, memory, or bandwidth exhaustion, leading to errors like 503 or timeouts.</li>
+                                            <li><strong>Downtime</strong>: Websites, applications, or networks become unavailable.</li>
+                                            <li><strong>Hardware Strain</strong>: Prolonged attacks may damage infrastructure due to excessive load.</li>
+                                        </ul>
+                                        <h6>On Businesses</h6>
+                                        <ul>
+                                            <li><strong>Revenue Loss</strong>: E-commerce or online services cannot process transactions.</li>
+                                            <li><strong>Reputation Damage</strong>: Customer trust erodes due to inaccessible services.</li>
+                                            <li><strong>Recovery Costs</strong>: Expenses for security upgrades, CDN services, or system restoration.</li>
+                                        </ul>
+                                        <h6>On Users</h6>
+                                        <ul>
+                                            <li><strong>Access Issues</strong>: Slow or unavailable services, such as banking, gaming, or social media.</li>
+                                            <li><strong>Data Risks</strong>: Combined attacks (e.g., with ransomware) may lead to data loss or encryption.</li>
+                                        </ul>
+                                        <p class="hint-text">Run <code>SYN_FLOOD</code> in the panel to see how a target becomes unresponsive!</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Part 3: Prevention -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#preventionCollapse" aria-expanded="false" aria-controls="preventionCollapse">
+                                        3. DDoS Prevention
+                                    </button>
+                                </h2>
+                                <div id="preventionCollapse" class="accordion-collapse collapse" data-bs-parent="#ddosLearningAccordion">
+                                    <div class="accordion-body">
+                                        <p>Preventing DDoS attacks involves technical and organizational strategies to mitigate risks.</p>
+                                        <h6>Technical Measures</h6>
+                                        <ul>
+                                            <li><strong>Firewalls</strong>: Block abnormal traffic based on rules (e.g., limiting requests per IP).</li>
+                                            <li><strong>Web Application Firewall (WAF)</strong>: Filters malicious HTTP requests before they reach the server.</li>
+                                            <li><strong>Content Delivery Network (CDN)</strong>: Distributes traffic across global servers (e.g., Cloudflare, Akamai).</li>
+                                            <li><strong>Rate Limiting</strong>: Caps the number of requests per second from a single IP or session.</li>
+                                            <li><strong>Load Balancers</strong>: Distributes traffic evenly to prevent server overload.</li>
+                                            <li><strong>Anycast Routing</strong>: Routes traffic to the nearest server, reducing network congestion.</li>
+                                        </ul>
+                                        <h6>Organizational Measures</h6>
+                                        <ul>
+                                            <li><strong>Traffic Monitoring</strong>: Detects attack patterns early using tools like Nagios or Zabbix.</li>
+                                            <li><strong>Incident Response Plan</strong>: Prepares procedures for handling attacks, such as contacting ISPs or activating backup servers.</li>
+                                            <li><strong>Staff Training</strong>: Enhances security awareness among IT teams.</li>
+                                        </ul>
+                                        <p class="hint-text">Test prevention concepts by running <code>ICMP_FLOOD</code> with <code>Intensity=1000</code> in the panel!</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Part 4: Tools in Simulation -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#toolsCollapse" aria-expanded="false" aria-controls="toolsCollapse">
+                                        4. Tools in Simulation
+                                    </button>
+                                </h2>
+                                <div id="toolsCollapse" class="accordion-collapse collapse" data-bs-parent="#ddosLearningAccordion">
+                                    <div class="accordion-body">
+                                        <p>Bots in this simulation use <code>ab</code> (Apache Benchmark) and <code>hping3</code> to execute DDoS attacks, controlled by the C2 server via the panel.</p>
+                                        <h6>1. Apache Benchmark (ab)</h6>
+                                        <ul>
+                                            <li><strong>Role</strong>: Simulates HTTP Flood by generating a high volume of HTTP requests to overwhelm the target web server.</li>
+                                            <li><strong>How Bots Use It</strong>: 
+                                                <ul>
+                                                    <li>Bots execute commands like:
+                                                        <pre><code>ab -n 10000 -c 100 http://172.20.0.2/</code></pre>
+                                                        This sends 10,000 requests with 100 concurrent connections to the target.</li>
+                                                    <li>For advanced attacks, bots include spoofed headers:
+                                                        <pre><code>ab -n 50000 -c 200 -H "User-Agent: Mozilla/5.0" http://172.20.0.2/login</code></pre>
+                                                        This targets specific endpoints (e.g., <code>/login</code>) with custom headers to mimic legitimate traffic.</li>
+                                                </ul>
+                                            </li>
+                                            <li><strong>Simulation</strong>: When you select <code>HTTP_FLOOD</code> in the panel and set <code>Intensity=1000</code>, bots run <code>ab</code> with parameters like <code>-n 60000 -c 50</code> to flood the target.</li>
+                                        </ul>
+                                        <p class="hint-text">Select <code>HTTP_FLOOD</code> in the panel to see how bots use <code>ab</code> to overload the target!</p>
+
+                                        <h6>2. hping3</h6>
+                                        <ul>
+                                            <li><strong>Role</strong>: Generates custom TCP or ICMP packets to simulate SYN Flood or ICMP Flood, targeting transport or network layers.</li>
+                                            <li><strong>How Bots Use It</strong>:
+                                                <ul>
+                                                    <li>For SYN Flood:
+                                                        <pre><code>hping3 --syn --flood -c 10000 -p 80 172.20.0.2</code></pre>
+                                                        Bots send rapid SYN packets to port 80, filling the target's connection table.</li>
+                                                    <li>For ICMP Flood:
+                                                        <pre><code>hping3 --icmp -c 10000 --flood 172.20.0.2</code></pre>
+                                                        Bots flood the target with ICMP Echo Request packets, consuming bandwidth.</li>
+                                                    <li>With spoofing:
+                                                        <pre><code>hping3 --syn --spoof 192.168.1.100 -c 20000 -p 80 172.20.0.2</code></pre>
+                                                        Bots fake source IPs to evade detection.</li>
+                                                </ul>
+                                            </li>
+                                            <li><strong>Simulation</strong>: When you select <code>SYN_FLOOD</code> or <code>ICMP_FLOOD</code> in the panel, bots run <code>hping3</code> with parameters like <code>--flood</code> to maximize impact.</li>
+                                        </ul>
+                                        <p class="hint-text">Try <code>ICMP_FLOOD</code> in the panel to observe how bots use <code>hping3</code> to consume bandwidth!</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Part 5: Simulation Panel Guide -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#simulationGuideCollapse" aria-expanded="false" aria-controls="simulationGuideCollapse">
+                                        5. Simulation Panel Guide
+                                    </button>
+                                </h2>
+                                <div id="simulationGuideCollapse" class="accordion-collapse collapse" data-bs-parent="#ddosLearningAccordion">
+                                    <div class="accordion-body">
+                                        <p>The <strong>DDoS Simulation Panel</strong> allows you to simulate HTTP Flood, SYN Flood, and ICMP Flood attacks to understand their mechanics.</p>
+                                        <h6>Steps to Use the Panel</h6>
+                                        <ol>
+                                            <li><strong>Start the Target and Botnet</strong>:
+                                                <ul>
+                                                    <li>In the <strong>Start Target & Botnet</strong> section, enter the <code>Number of Bots</code> (1-5).</li>
+                                                    <li>Click the <strong>Start</strong> button. The <code>Target URL</code> or <code>Target IP</code> will be populated.</li>
+                                                </ul>
+                                            </li>
+                                            <li><strong>Configure the Attack</strong>:
+                                                <ul>
+                                                    <li>In the <strong>Attack Configuration</strong> section, select the <code>Attack Type</code>:
+                                                        <ul>
+                                                            <li><code>HTTP_FLOOD</code>: Targets web servers with HTTP requests.</li>
+                                                            <li><code>SYN_FLOOD</code>: Overloads connection tables with TCP SYN packets.</li>
+                                                            <li><code>ICMP_FLOOD</code>: Consumes bandwidth with ICMP packets.</li>
+                                                        </ul>
+                                                    </li>
+                                                    <li>Enter <code>Intensity</code> (requests or packets per second, e.g., 1000).</li>
+                                                    <li>Enter <code>Duration</code> (seconds, e.g., 60).</li>
+                                                    <li>For <code>HTTP_FLOOD</code>:
+                                                        <ul>
+                                                            <li>Check <code>Spoof Headers</code> to mimic legitimate traffic.</li>
+                                                            <li>Optionally add <code>Custom Headers</code> in JSON (e.g., <code>{"User-Agent": "Mozilla/5.0"}</code>).</li>
+                                                        </ul>
+                                                    </li>
+                                                    <li>For <code>SYN_FLOOD</code>:
+                                                        <ul>
+                                                            <li>Enter <code>Target Port</code> (e.g., 80).</li>
+                                                            <li>Check <code>Spoof Source IP</code> to hide bot IPs.</li>
+                                                        </ul>
+                                                    </li>
+                                                    <li>For <code>ICMP_FLOOD</code>:
+                                                        <ul>
+                                                            <li>Enter <code>Target IP</code> (e.g., 172.20.0.2).</li>
+                                                            <li>Check <code>Spoof Source IP</code> to evade detection.</li>
+                                                        </ul>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                            <li><strong>Launch the Attack</strong>:
+                                                <ul>
+                                                    <li>Click the <strong>Attack</strong> button. Alerts will appear in the top-right corner showing attack status.</li>
+                                                </ul>
+                                            </li>
+                                            <li><strong>End the Simulation</strong>:
+                                                <ul>
+                                                    <li>Click the <strong>End Simulation</strong> button to stop the attack and reset the panel.</li>
+                                                </ul>
+                                            </li>
+                                            <li><strong>Monitor Bots</strong>:
+                                                <ul>
+                                                    <li>Check the <strong>Bot List</strong> table to view bot status (Online/Offline), IP, and last seen time.</li>
+                                                </ul>
+                                            </li>
+                                        </ol>
+                                        <p class="hint-text">Start with <code>HTTP_FLOOD</code> and 2 bots to see how the panel simulates an attack!</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DDoS Panel -->
                     <div class="ddos-panel">
-                        <h4 class="card-title text-center mb-4">DDoS Simulation Panel</h4>
+                        <h4 class="form-title text-center mb-4">DDoS Simulation Panel</h4>
 
                         <!-- Start Target & Botnet Section -->
                         <div class="mb-4">
@@ -35,10 +252,13 @@
                             <div class="row align-items-end">
                                 <div class="col-md-6 mb-3">
                                     <label for="botCount" class="form-label">Number of Bots (1-5)</label>
-                                    <input type="number" id="botCount" class="form-control" min="1" max="5" value="5">
+                                    <input type="number" id="botCount" class="form-control" min="1" max="5" value="1" title="Choose number of bots to deploy">
                                 </div>
                                 <div class="col-md-6 mb-3 text-md-end">
-                                    <button id="startBtn" class="btn btn-primary"><i class="bi bi-play-fill card-icon"></i> Start</button>
+                                    <button id="startBtn" class="btn btn-primary btn-custom">
+                                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                        <i class="bi bi-play-fill"></i> Start
+                                    </button>
                                 </div>
                             </div>
                             <p id="startTargetMessage" class="mt-2 text-sm"></p>
@@ -50,25 +270,25 @@
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="attackType" class="form-label">Attack Type</label>
-                                    <select id="attackType" class="form-select">
+                                    <select id="attackType" class="form-select" title="Select the type of DDoS attack">
                                         <option value="HTTP_FLOOD">HTTP Flood</option>
                                         <option value="SYN_FLOOD">SYN Flood</option>
-                                        <option value="UDP_FLOOD">UDP Flood</option>
+                                        <option value="ICMP_FLOOD">ICMP Flood</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="intensity" class="form-label">Intensity (RPS)</label>
-                                    <input type="number" id="intensity" class="form-control" placeholder="Enter intensity (RPS)" min="1">
+                                    <input type="number" id="intensity" class="form-control" placeholder="Enter intensity (RPS)" min="1" title="Requests or packets per second">
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="duration" class="form-label">Duration (seconds)</label>
-                                    <input type="number" id="duration" class="form-control" placeholder="Enter duration in seconds" min="1">
+                                    <input type="number" id="duration" class="form-control" placeholder="Enter duration in seconds" min="1" title="Attack duration in seconds">
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label for="targetUrl" class="form-label">Target URL</label>
-                                    <input type="text" id="targetUrl" class="form-control" placeholder="Target URL will be filled after starting" disabled>
+                                    <label for="targetUrl" class="form-label">Target URL/IP</label>
+                                    <input type="text" id="targetUrl" class="form-control" placeholder="Target URL or IP will be filled after starting" disabled title="Target URL or IP (auto-filled)">
                                 </div>
                             </div>
 
@@ -76,13 +296,13 @@
                             <div id="httpFloodOptions" class="row mb-3 d-none">
                                 <div class="col-md-6 mb-3">
                                     <div class="form-check">
-                                        <input type="checkbox" id="spoofHeaders" class="form-check-input">
+                                        <input type="checkbox" id="spoofHeaders" class="form-check-input" title="Enable spoofed HTTP headers">
                                         <label for="spoofHeaders" class="form-check-label">Spoof Headers</label>
                                     </div>
                                 </div>
                                 <div id="customHeadersSection" class="col-md-6 mb-3 d-none">
                                     <label for="customHeaders" class="form-label">Custom Headers (JSON)</label>
-                                    <textarea id="customHeaders" class="form-control" placeholder='{"User-Agent": "Mozilla/5.0", "Referer": "https://example.com"}'></textarea>
+                                    <textarea id="customHeaders" class="form-control" placeholder='{"User-Agent": "Mozilla/5.0", "Referer": "https://example.com"}' title="Enter custom headers in JSON format"></textarea>
                                 </div>
                             </div>
 
@@ -90,117 +310,46 @@
                             <div id="synFloodOptions" class="row mb-3 d-none">
                                 <div class="col-md-6 mb-3">
                                     <label for="synTargetPort" class="form-label">Target Port</label>
-                                    <input type="number" id="synTargetPort" class="form-control" min="1" max="65535" value="80">
+                                    <input type="number" id="synTargetPort" class="form-control" min="1" max="65535" value="80" title="Target port for SYN Flood (1-65535)">
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <div class="form-check mt-4">
-                                        <input type="checkbox" id="synSpoofIp" class="form-check-input">
+                                        <input type="checkbox" id="synSpoofIp" class="form-check-input" title="Enable spoofed source IP">
                                         <label for="synSpoofIp" class="form-check-label">Spoof Source IP</label>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- UDP Flood Specific Options -->
-                            <div id="udpFloodOptions" class="row mb-3 d-none">
-                                <div class="col-md-4 mb-3">
-                                    <label for="udpTargetPort" class="form-label">Target Port</label>
-                                    <input type="number" id="udpTargetPort" class="form-control" min="1" max="65535" value="53">
+                            <!-- ICMP Flood Specific Options -->
+                            <div id="icmpFloodOptions" class="row mb-3 d-none">
+                                <div class="col-md-6 mb-3">
+                                    <label for="icmpTargetIp" class="form-label">Target IP</label>
+                                    <input type="text" id="icmpTargetIp" class="form-control" placeholder="Enter target IP (e.g., 172.20.0.2)" title="Target IP for ICMP Flood">
                                 </div>
-                                <div class="col-md-4 mb-3">
-                                    <label for="packetSize" class="form-label">Packet Size (bytes)</label>
-                                    <input type="number" id="packetSize" class="form-control" min="1" value="1024">
-                                </div>
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-6 mb-3">
                                     <div class="form-check mt-4">
-                                        <input type="checkbox" id="udpSpoofIp" class="form-check-input">
-                                        <label for="udpSpoofIp" class="form-check-label">Spoof Source IP</label>
+                                        <input type="checkbox" id="icmpSpoofIp" class="form-check-input" title="Enable spoofed source IP">
+                                        <label for="icmpSpoofIp" class="form-check-label">Spoof Source IP</label>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Attack, Stop, and End Simulation Buttons -->
+                        <!-- Attack and End Simulation Buttons -->
                         <div id="attackBtnContainer" class="text-center mb-4 d-none">
-                            <button id="attackBtn" class="btn btn-danger me-2"><i class="bi bi-exclamation-triangle-fill card-icon"></i> Attack</button>
-                            <button id="endSimulationBtn" class="btn btn-warning"><i class="bi bi-stop-fill card-icon"></i> End Simulation</button>
-                        </div>
-                        
-                        <!-- Attack Details Section (static data) -->
-                        <div id="attackDetailsSection" class="d-none">
-                            <h5 class="section-title">Attack Details</h5>
-                            <div id="attackDetails" class="mb-3">
-                                <ul class="list-group">
-                                    <li class="list-group-item"><strong>Attack ID:</strong> 123e4567-e89b-12d3-a456-426614174000</li>
-                                    <li class="list-group-item"><strong>Target URL:</strong> http://user1.lab.local</li>
-                                    <li class="list-group-item"><strong>Attack Type:</strong> HTTP_FLOOD</li>
-                                    <li class="list-group-item"><strong>Intensity (RPS):</strong> 100</li>
-                                    <li class="list-group-item"><strong>Duration:</strong> 300 seconds</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Attack Monitoring Section (dynamic data) -->
-                        <div id="attackMonitoringSection" class="d-none">
-                            <h5 class="section-title">Attack Monitoring</h5>
-                            <div class="row mb-3">
-                                <div class="col-md-12 d-flex align-items-end justify-content-end">
-                                    <button id="refreshChartBtn" class="btn btn-primary me-2"><i class="bi bi-arrow-repeat card-icon"></i> Refresh</button>
-                                    <button id="exportPcapBtn" class="btn btn-info"><i class="bi bi-download card-icon"></i> Export PCAP</button>
-                                </div>
-                            </div>
-                            <!-- dynamic info -->
-                            <div id="attackMonitoringDetails" class="mb-3">
-                                <ul class="list-group">
-                                    <li class="list-group-item"><strong>Elapsed Time:</strong> 120 seconds</li>
-                                    <li class="list-group-item"><strong>Remaining Time:</strong> 180 seconds</li>
-                                    <li class="list-group-item"><strong>Total Requests Sent:</strong> 12,500</li>
-                                </ul>
-                            </div>
-                            <!-- Bot Status -->
-                            <div id="botStatus" class="mb-3">
-                                <h6 class="section-title">Bot Status</h6>
-                                <table class="table table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>Bot ID</th>
-                                            <th>Requests Sent</th>
-                                            <th>Status</th>
-                                            <th>Error Message</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="botStatusTableBody">
-                                        <tr>
-                                            <td>user1_bot_0</td>
-                                            <td>4,200</td>
-                                            <td class="text-success">running</td>
-                                            <td>None</td>
-                                        </tr>
-                                        <tr>
-                                            <td>user1_bot_1</td>
-                                            <td>4,300</td>
-                                            <td class="text-success">running</td>
-                                            <td>None</td>
-                                        </tr>
-                                        <tr>
-                                            <td>user1_bot_2</td>
-                                            <td>4,000</td>
-                                            <td class="text-danger">failed</td>
-                                            <td>Connection timeout</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <!-- chart -->
-                            <div class="card">
-                                <div class="card-body">
-                                    <canvas id="attackChart"></canvas>
-                                </div>
-                            </div>
+                            <button id="attackBtn" class="btn btn-danger btn-custom me-2">
+                                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                <i class="bi bi-exclamation-triangle-fill"></i> Attack
+                            </button>
+                            <button id="endSimulationBtn" class="btn btn-warning btn-custom">
+                                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                <i class="bi bi-stop-fill"></i> End Simulation
+                            </button>
                         </div>
 
                         <!-- Download Malware Button -->
                         <div class="text-center mb-4">
-                            <a href="/download/malware" class="btn btn-success"><i class="bi bi-download card-icon"></i> Download Malware</a>
+                            <a href="/download/malware" class="btn btn-success btn-custom"><i class="bi bi-download"></i> Download Malware</a>
                         </div>
 
                         <!-- Bot List Table -->
@@ -218,26 +367,30 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td>bot-001</td>
-                                        <td class="text-success">Online</td>
-                                        <td>192.168.1.101</td>
-                                        <td>Windows 10</td>
-                                        <td>2023-10-10 12:34:56</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-primary"><i class="bi bi-gear-fill card-icon"></i> Interact</button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>bot-002</td>
-                                        <td class="text-danger">Offline</td>
-                                        <td>192.168.1.102</td>
-                                        <td>Ubuntu 20.04</td>
-                                        <td>2023-10-09 09:12:34</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-primary" disabled><i class="bi bi-gear-fill card-icon"></i> Interact</button>
-                                        </td>
-                                    </tr>
+                                    {% if bots %}
+                                        {% for bot in bots %}
+                                            <tr>
+                                                <td>{{ bot.id }}</td>
+                                                <td class="{% if bot.status == 'online' %}text-success{% else %}text-danger{% endif %}">
+                                                    {{ bot.status | capitalize }}
+                                                </td>
+                                                <td>{{ bot.ip }}</td>
+                                                <td>{{ bot.os }}</td>
+                                                <td>{{ bot.last_seen }}</td>
+                                                <td>
+                                                    <a href="/ddos/{{ bot.token }}"
+                                                       class="btn btn-primary btn-custom btn-sm {% if bot.status != 'online' %}disabled{% endif %}"
+                                                       {% if bot.status != 'online' %}aria-disabled="true"{% endif %}>
+                                                        <i class="bi bi-gear-fill"></i> Interact
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="6" class="text-center">No bots available.</td>
+                                        </tr>
+                                    {% endif %}
                                 </tbody>
                             </table>
                         </div>

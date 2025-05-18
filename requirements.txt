@@ -13,3 +13,5 @@ tenacity
 pillow
 python-dateutil
 pytz
+python-slugify
+aiofiles

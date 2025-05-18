@@ -15,60 +15,7 @@ BOT_TTL = 3600
 
 @router.get("/ddos")
 async def ddos_simulation(request: Request):
-    async with (await get_connection_pool()).acquire() as conn:
-        try:
-            bots = await conn.fetch("""
-                SELECT id, token, status
-                FROM bots
-            """)
-
-            bot_list = []
-            for bot in bots:
-                bot_id = bot["id"]
-                token = bot["token"]
-                status = bot["status"]
-
-                bot_info = await conn.fetchrow("""
-                    SELECT ip, os
-                    FROM bot_info
-                    WHERE bot_id = $1
-                """, bot_id)
-
-                last_seen = await conn.fetchrow("""
-                    SELECT timestamp
-                    FROM logs
-                    WHERE bot_id = $1
-                    ORDER BY timestamp DESC
-                    LIMIT 1
-                """, bot_id)
-
-                bot_list.append({
-                    "id": bot_id,
-                    "token": token,
-                    "status": status,
-                    "ip": bot_info["ip"] if bot_info else "N/A",
-                    "os": bot_info["os"] if bot_info else "N/A",
-                    "last_seen": last_seen["timestamp"].strftime("%Y-%m-%d %H:%M:%S") if last_seen else "N/A",
-                })
-
-            return templates.TemplateResponse(
-                'ddos_simulation/ddos2.html',
-                context={
-                    'request': request,
-                    'active_page': 'ddos',
-                    'bots': bot_list  # Truyền danh sách bot vào template
-                }
-            )
-        except Exception as e:
-            print(f"Error fetching bots: {str(e)}")
-            return templates.TemplateResponse(
-                'ddos_simulation/ddos2.html',
-                context={
-                    'request': request,
-                    'active_page': 'ddos',
-                    'bots': []  # Trả về danh sách rỗng nếu có lỗi
-                }
-            )
+    return templates.TemplateResponse('ddos_simulation/ddos2.html', context={'request': request, 'active_page': 'ddos'})
 
 @router.post("/ddos/start-target")
 async def start_target(request: Request, bot_count: int = Form(1)):

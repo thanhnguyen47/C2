@@ -13,6 +13,9 @@ from routes.dashboard import router as dashboard_router
 from routes.bot import router as bot_router
 from routes.ddos import router as ddos_router
 from routes.web_challs import router as web_router
+from routes.admin.manage_users import router as admin_users_router
+from routes.admin.manage_challenges import router as admin_challenges_router
+from routes.admin.dashboard import router as admin_dashboard_router
 from database.dbmain import create_db_pool, close_db_pool
 from config import templates
 from database.auth import add_user
@@ -42,6 +45,7 @@ origins = [
 
 # config static files
 app.mount('/static', StaticFiles(directory='static'), name='static')
+app.mount('/uploads', StaticFiles(directory='uploads'), name='uploads')
 
 @app.get("/favicon.ico")
 async def favicon():
@@ -63,6 +67,9 @@ app.include_router(dashboard_router)
 app.include_router(bot_router)
 app.include_router(ddos_router)
 app.include_router(web_router)
+app.include_router(admin_users_router)
+app.include_router(admin_challenges_router)
+app.include_router(admin_dashboard_router)
 
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handler(request: Request, e: HTTPException):

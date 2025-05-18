@@ -1,6 +1,6 @@
 /* Định dạng khu vực chính (cmd-section) */
 .cmd-section {
-    height: 500px;
+    min-height: 300px; /* Chiều cao tối thiểu để tránh vỡ layout trên mobile */
     position: relative;
     overflow-y: auto;
     padding-right: 10px;
@@ -90,7 +90,7 @@
 
 /* Định dạng session-details */
 .session-details {
-    height: 500px;
+    min-height: 300px; /* Chiều cao tối thiểu để đồng bộ với cmd-section trên mobile */
     overflow-y: auto;
 }
 
@@ -98,4 +98,51 @@
 .btn-action {
     width: 140px;
     height: 40px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+    /* Mobile: Đảm bảo chiều cao linh hoạt và căn chỉnh tốt hơn */
+    .cmd-section, .session-details {
+        min-height: 200px; /* Giảm chiều cao trên mobile để tránh chiếm quá nhiều không gian */
+    }
+
+    .cmd-input {
+        padding: 8px; /* Giảm padding trên mobile */
+    }
+
+    .cmd-input label {
+        font-size: 14px; /* Giảm kích thước font trên mobile */
+    }
+
+    .cmd-input input.form-control {
+        font-size: 14px; /* Giảm kích thước font trên mobile */
+    }
+
+    .cmd-input button.btn-cmd {
+        padding: 2px 8px !important; /* Giảm padding cho nút Send */
+        font-size: 12px !important; /* Giảm kích thước font */
+    }
+
+    .btn-action {
+        width: 120px; /* Giảm kích thước nút trên mobile */
+        height: 35px;
+        font-size: 14px; /* Giảm kích thước chữ */
+    }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+    /* Tablet: Điều chỉnh chiều cao và kích thước */
+    .cmd-section, .session-details {
+        min-height: 400px; /* Chiều cao trung bình trên tablet */
+    }
+
+    .cmd-input label, .cmd-input input.form-control {
+        font-size: 16px; /* Kích thước font trung bình */
+    }
+
+    .btn-action {
+        width: 130px; /* Kích thước nút trung bình */
+        height: 38px;
+    }
 }

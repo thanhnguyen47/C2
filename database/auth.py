@@ -57,6 +57,16 @@ async def get_current_user(username):
             return user
         except Exception as e:
             return None
+async def get_current_user_avatar(uid):
+    async with (await get_connection_pool()).acquire() as conn:
+        try:
+            avatar_url = await conn.fetchrow("""
+                SELECT avatar_url FROM c2_user_info WHERE user_id= $1
+            """, uid)
+            avatar_url = avatar_url["avatar_url"] if avatar_url else None
+            return avatar_url
+        except Exception as e:
+            return None
 
 async def add_user(username, passwd):
     # check empty input
