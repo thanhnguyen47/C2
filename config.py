@@ -30,7 +30,7 @@ SENDER_PASSWORD=os.getenv('SENDER_PASSWORD')
 TINYMCE_API_KEY = os.getenv('TINYMCE_API_KEY')
 
 docker_client = docker.from_env()
-traefik_container = docker_client.containers.get("thanh-traefik-1")
+traefik_container = docker_client.containers.get("ubuntu-traefik-1")
 
 
 class CustomTemplates(Jinja2Templates):

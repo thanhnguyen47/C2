@@ -40,7 +40,7 @@
                             </div>
                         </div>
                         <h2 class="lab-title">Lab: {{ challenge.title }}</h2>
-                        <p class="lab-description">{{ challenge.description | safe }}</p>
+                        <p class="lab-description">{{ challenge.description }}</p>
                         <div class="action-buttons">
                             <button class="access-btn" onclick="accessLab('{{ topic.slug }}', '{{ challenge.slug }}')"><i class="bi bi-flask"></i> Access the Lab</button>
                         </div>
@@ -58,7 +58,7 @@
                                 </h2>
                                 <div id="solutionContent" class="accordion-collapse collapse" data-bs-parent="#solutionsAccordion">
                                     <div class="accordion-body">
-                                        {{ challenge.solution | safe }}
+                                        {{ challenge.solution }}
                                     </div>
                                 </div>
                             </div>

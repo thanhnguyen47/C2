@@ -1,6 +1,6 @@
 from fastapi import Request, APIRouter, HTTPException, status, Form, Response
 from fastapi.responses import JSONResponse
-from config import templates, C2_URL, AttackRequest, AttackResponse, SUPPORTED_ATTACK_TYPES, docker_client, traefik_container
+from config import templates, C2_URL, AttackRequest, AttackResponse, SUPPORTED_ATTACK_TYPES, docker_client, traefik_container, DOMAIN
 from database.bot import get_bot, get_bot_info, get_logs
 from database.dbmain import get_connection_pool, redis_client
 from sse_starlette import EventSourceResponse
@@ -92,14 +92,17 @@ async def start_target(request: Request, bot_count: int = Form(1)):
         )
 
     # create new container
+    target_domain=f"{uuid.uuid4()}.{DOMAIN}"
     try:
         container = docker_client.containers.run(
             "ddos-target",
             detach=True,
             labels={
                 "traefik.enable": "true",
-                f"traefik.http.routers.user{user_id}.rule": f"Host(`user{user_id}.lab.local`)",
-                f"traefik.http.routers.user{user_id}.entrypoints": "web",
+                f"traefik.http.routers.user{user_id}.rule": f"Host(`{target_domain}`)",
+                f"traefik.http.routers.user{user_id}.entrypoints": "websecure",  # Thay đổi từ "web" sang "websecure"
+                f"traefik.http.routers.user{user_id}.tls": "true",  # Bật TLS
+                f"traefik.http.routers.user{user_id}.tls.certresolver": "letsencrypt",  # Dùng resolver để cấp chứng chỉ
                 f"traefik.http.services.user{user_id}.loadbalancer.server.port": "80",
                 "user_id": user_id
             },
@@ -121,7 +124,7 @@ async def start_target(request: Request, bot_count: int = Form(1)):
     # save container id into Redis
     await redis_client.setex(f"user_containers:{user_id}", BOT_TTL, container.id)
 
-    c2_network = docker_client.networks.get("thanh_c2-network")
+    c2_network = docker_client.networks.get("ubuntu_c2-network")
     bot_ids = []
     bot_count = min(bot_count, 5)
     for i in range(bot_count):
@@ -144,7 +147,6 @@ async def start_target(request: Request, bot_count: int = Form(1)):
                 cpu_period=100000,
                 mem_limit="128m",
                 network=network_name,
-                user="root",
                 cap_add=["NET_ADMIN", "NET_RAW"]
             )
             c2_network.connect(bot)
@@ -159,7 +161,7 @@ async def start_target(request: Request, bot_count: int = Form(1)):
 
     # Create pending attack record
     attack_id = str(uuid.uuid4())
-    target_url = f"http://user{user_id}.lab.local"
+    target_url = f"https://{str(uuid.uuid4())}.{DOMAIN}"
     attack_info = {
         "attack_id": attack_id,
         "user_id": user_id,
@@ -384,7 +386,7 @@ async def get_status(request: Request):
     existing_target = await redis_client.get(f"user_containers:{user_id}")
     target_url = None
     if existing_target:
-        target_url = f"http://user{user_id}.lab.local"
+        target_url = f"https://{str(uuid.uuid4())}.{DOMAIN}"
 
     # Check if botnets exist
     existing_botnets = await redis_client.get(f"user_botnets:{user_id}")

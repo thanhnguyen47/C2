@@ -32,7 +32,7 @@ async def login(response: Response, username=Form(...), password=Form(...)):
             key="access_token",
             value=generate_access_token(username),
             httponly=True,
-            secure=False, # replace = True in practice (HTTPS)
+            secure=True,
             max_age=60*60*24*3,
             samesite="lax"
         )

@@ -1,6 +1,6 @@
 from fastapi import Request, APIRouter, status, HTTPException
 from fastapi.responses import JSONResponse
-from config import templates, docker_client, traefik_container
+from config import templates, docker_client, traefik_container, DOMAIN
 from database.web_challs import get_all_web_topics, get_topic_details, get_web_lab_list, get_web_lab_details, get_docker_image, get_correct_flag
 from database.dbmain import redis_client, get_connection_pool
 import json
@@ -104,8 +104,8 @@ async def access_lab(request: Request, topic_slug, lab_slug):
             check_duplicate=True
         )
         
-    # subdomain = f"user{user_id}-{uuid.uuid4()}.lab.local"
-    subdomain = f"user{user_id}-web.lab.local"
+    subdomain = f"{uuid.uuid4()}.{DOMAIN}"
+    # subdomain = f"user{user_id}-web.lab.local"
     #create new container
     try:
         container = docker_client.containers.run(

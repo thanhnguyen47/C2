@@ -236,7 +236,7 @@ async def logout():
         key="access_token",
         value="",
         httponly=True,
-        secure=False, # replace = True in practice (HTTPS)
+        secure=True,
         max_age=0,
         samesite="lax"
     )

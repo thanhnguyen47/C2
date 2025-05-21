@@ -51,7 +51,7 @@ async def send_verification_email(email: str, token: str):
     sender_email = SENDER_EMAIL
     sender_password = SENDER_PASSWORD
 
-    verification_url = f"${DOMAIN}/verify/{token}"
+    verification_url = f"https://{DOMAIN}/verify/{token}"
 
     message = MIMEMultipart("alternative")
     message["Subject"] = "🔐 Email Verification Required"
@@ -89,7 +89,7 @@ async def send_reset_password_email(email: str, token: str):
     sender_email = SENDER_EMAIL
     sender_password = SENDER_PASSWORD
 
-    reset_url = f"${DOMAIN}/reset-password/{token}"
+    reset_url = f"https://{DOMAIN}/reset-password/{token}"
 
     message = MIMEMultipart("alternative")
     message["Subject"] = "🔒 Password Reset Request"

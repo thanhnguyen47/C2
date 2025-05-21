@@ -86,4 +86,5 @@ endSimulationBtn.addEventListener('click', function (event) {
             alert("stop fail")
         }
     })
+    .catch(e=>console.error(e))
 });
