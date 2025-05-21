@@ -161,7 +161,7 @@ async def start_target(request: Request, bot_count: int = Form(1)):
 
     # Create pending attack record
     attack_id = str(uuid.uuid4())
-    target_url = f"https://{str(uuid.uuid4())}.{DOMAIN}"
+    target_url = f"https://{target_domain}"
     attack_info = {
         "attack_id": attack_id,
         "user_id": user_id,
