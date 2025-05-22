@@ -114,7 +114,9 @@ async def access_lab(request: Request, topic_slug, lab_slug):
             labels={
                 "traefik.enable": "true",
                 f"traefik.http.routers.user{user_id}.rule": f"Host(`{subdomain}`)",
-                f"traefik.http.routers.user{user_id}.entrypoints": "web",
+                f"traefik.http.routers.user{user_id}.entrypoints": "websecure",
+                f"traefik.http.routers.user{user_id}.tls": "true",  # Bật TLS
+                f"traefik.http.routers.user{user_id}.tls.certresolver": "letsencrypt",  # Dùng resolver để cấp chứng chỉ
                 f"traefik.http.services.user{user_id}.loadbalancer.server.port": docker_image['ports'],
                 "user_id": str(user_id)
             },
