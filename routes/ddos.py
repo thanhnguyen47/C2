@@ -383,25 +383,23 @@ async def get_status(request: Request):
     user_id = str(request.state.user["id"])
 
     # Check if target exists
-    existing_target = await redis_client.get(f"user_containers:{user_id}")
+    container_id = await redis_client.get(f"user_containers:{user_id}")
     target_url = None
-    if existing_target:
-        target_url = f"https://{str(uuid.uuid4())}.{DOMAIN}"
-
-    # Check if botnets exist
-    existing_botnets = await redis_client.get(f"user_botnets:{user_id}")
-    if not existing_target or not existing_botnets:
-        return {"is_attacking": False, "attack_details": None, "target_url": target_url}
-
-    # Check for attack record in Redis
     attack_info = None
+
     async for key in redis_client.scan_iter(f"attack:*"):
         attack_data = await redis_client.get(key)
         if attack_data:
             attack = json.loads(attack_data)
             if attack["user_id"] == user_id:
                 attack_info = attack
+                target_url = attack["target_url"]
                 break
+    
+    # Check if botnets exist
+    existing_botnets = await redis_client.get(f"user_botnets:{user_id}")
+    if not container_id or not existing_botnets:
+        return {"is_attacking": False, "attack_details": None, "target_url": target_url}
 
     if not attack_info:
         return {"is_attacking": False, "attack_details": None, "target_url": target_url}
