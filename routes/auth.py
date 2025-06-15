@@ -173,7 +173,7 @@ async def forgot_password(email: str = Form(...)):
             # Kiểm tra email tồn tại
             user = await conn.fetchrow("SELECT id, email FROM c2_users WHERE email = $1", email)
             if not user:
-                raise HTTPException(status_code=404, detail="Email không tồn tại trong hệ thống")
+                raise HTTPException(status_code=404, detail="Email does not exist")
 
             # Tạo token và thời hạn
             token = str(uuid.uuid4())
@@ -193,12 +193,12 @@ async def forgot_password(email: str = Form(...)):
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={"message": "Đã gửi email hướng dẫn đặt lại mật khẩu"}
+            content={"message": "Reset password email sent successfully"}
         )
     except HTTPException as e:
         return JSONResponse(status_code=e.status_code, content={"message": e.detail})
     except Exception as e:
-        return JSONResponse(status_code=500, content={"message": f"Lỗi server: {str(e)}"})
+        return JSONResponse(status_code=500, content={"message": f"Server error: {str(e)}"})
 
 @router.get('/reset-password/{token}', response_class=HTMLResponse)
 async def reset_password_page(token: str):

@@ -17,7 +17,7 @@ from routes.admin.manage_users import router as admin_users_router
 from routes.admin.manage_challenges import router as admin_challenges_router
 from routes.admin.dashboard import router as admin_dashboard_router
 from database.dbmain import create_db_pool, close_db_pool
-from config import templates
+from config import templates, scheduler
 from database.auth import add_user
 from database.dbmain import init_db
 
@@ -28,19 +28,20 @@ async def lifespan(app: FastAPI):
     await create_db_pool()
     await init_db()
     await add_user("wiener", "peter")
+    scheduler.start()
 
     yield # this is where the app will run
 
     # shutdown logic 
     await close_db_pool()
+    scheduler.shutdown()
     print("App shutdown completed.")
 
 
 app = FastAPI(lifespan=lifespan)
 
 origins = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000"
+    "http://ctoacademy.io.vn"
 ]
 
 # config static files

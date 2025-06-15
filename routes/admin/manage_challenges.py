@@ -2,25 +2,18 @@ from fastapi import Request, APIRouter, Form, File, UploadFile, status, HTTPExce
 from fastapi.responses import Response, JSONResponse
 from config import templates
 from database.dbmain import get_connection_pool
-from slugify import slugify
-from config import docker_client
 import uuid
 import aiofiles
 import tarfile
 import os
 from docker.errors import DockerException, ImageLoadError
-
+from database.admin.manage_challenges import get_web_topics, add_web_topic, edit_web_topic, delete_web_topic, get_web_topic_by_id, get_web_challenges_by_topic, delete_challenge_from_topic, get_challenge_details
 
 router = APIRouter()
 
 @router.get("/admin/topics")
 async def get_topics(request: Request):
-    async with (await get_connection_pool()).acquire() as conn:
-        topics = await conn.fetch(
-            """
-            SELECT * from web_topics
-            """
-        )
+    topics = await get_web_topics()
     return templates.TemplateResponse("admin/manage_topics.html", context={"request": request, "active_page": "challenges", "topics": topics})
 
 @router.post("/admin/topics/add")
@@ -32,40 +25,13 @@ async def add_topic(
     type: str=Form(..., regex="^(server-side|client-side|advanced)$"),
     icon: str=Form(..., regex="^bi-[a-z-]+$")
 ):
-    try:
-        async with (await get_connection_pool()).acquire() as conn:
-            slug = slugify(title)
-            # check if slug exists
-            existing_slug = await conn.fetchval("SELECT slug FROM web_challenges WHERE slug = $1", slug)
-            if existing_slug:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="A topic with this title already exists (slug conflict)")
-            
-            await conn.execute(
-                """
-                INSERT INTO web_topics (title, description, short_description, slug, type, icon)
-                VALUES ($1, $2, $3, $4, $5, $6)
-                """,
-                title,
-                description,
-                short_description,
-                slug,
-                type,
-                icon
-            )
-            return JSONResponse(
-                status_code=status.HTTP_201_CREATED,
-                content={"details": "Topic added successfully"}
-            )
-    except HTTPException as e:
-        return JSONResponse(
-            status_code=e.status_code,
-            content={"details": e.detail}
-        )
-    except Exception as e:
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={"details": f"Error adding topic: {str(e)}"}
-        )
+    if await add_web_topic(title, description, short_description, type, icon) is False:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"details": "error adding topic, maybe slug conflict"})
+
+    return JSONResponse(
+        status_code=status.HTTP_201_CREATED,
+        content={"details": "Topic added successfully"}
+    )
 
 
 @router.post("/admin/topics/edit")
@@ -78,99 +44,30 @@ async def edit_topic(
     type: str=Form(..., regex="^(server-side|client-side|advanced)$"),
     icon: str=Form(..., regex="^bi-[a-z-]+$")
 ):
-    try:
-        async with (await get_connection_pool()).acquire() as conn:
-            slug = slugify(title)
-            # check if slug exists
-            existing_slug = await conn.fetchval("SELECT slug FROM web_challenges WHERE slug = $1", slug)
-            if existing_slug:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="A topic with this title already exists (slug conflict)")
-            
-            exists = await conn.fetchval(
-                    "SELECT EXISTS (SELECT 1 FROM web_topics WHERE topic_id = $1)",
-                    topic_id
-                )
-            if not exists:
-                raise HTTPException(status_code=404, detail="Topic not found")
-
-            # update the topic
-            await conn.execute(
-                """
-                UPDATE web_topics
-                SET title = $1, description = $2, short_description = $3, slug = $4, type = $5, icon = $6
-                WHERE topic_id = $7
-                """,
-                title,
-                description,
-                short_description,
-                slug,
-                type,
-                icon,
-                topic_id
-            )
-            return JSONResponse(
-                status_code=status.HTTP_200_OK,
-                content={"details": "Topic updated successfully"}
-            )
-    except HTTPException as e:
+    if await edit_web_topic(topic_id, title, description, short_description, type, icon) is False:
         return JSONResponse(
-            status_code=e.status_code,
-            content={"details": e.detail}
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"details": "Error editing topic, maybe slug conflict or topic not found"}
         )
-    except Exception as e:
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={"details": f"Error editing topic: {str(e)}"}
-        )
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"details": "Topic updated successfully"}
+    )
 
 @router.post("/admin/topics/delete")
 async def delete_topic(
     request: Request,
     topic_id: int=Form(...)
 ):
-    try:
-        # cần thêm logic kiểm tra xem topic còn có challenge nào không nữa!!!
-        async with (await get_connection_pool()).acquire() as conn:
-            exists = await conn.fetchval(
-                    "SELECT EXISTS (SELECT 1 FROM web_topics WHERE topic_id = $1)",
-                    topic_id
-                )
-            if not exists:
-                raise HTTPException(status_code=404, detail="Topic not found")
-
-            # Kiểm tra xem topic có challenge nào không
-            has_challenges = await conn.fetchval(
-                "SELECT EXISTS (SELECT 1 FROM web_challenges WHERE topic_id = $1)",
-                topic_id
-            )
-            if has_challenges:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Cannot delete topic. Delete the challenges first."
-                )
-            
-            # delete the topic
-            await conn.execute(
-                """
-                DELETE FROM web_topics
-                WHERE topic_id = $1
-                """,
-                topic_id
-            )
-            return JSONResponse(
-                status_code=status.HTTP_200_OK,
-                content={"details": "Topic deleted successfully"}
-            )
-    except HTTPException as e:
+    if await delete_web_topic(topic_id) is False:
         return JSONResponse(
-            status_code=e.status_code,
-            content={"details": e.detail}
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"details": "Error deleting topic, maybe topic not found or has challenges"}
         )
-    except Exception as e:
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={"details": f"Error deleting topic: {str(e)}"}
-        )
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"details": "Topic deleted successfully"}
+    )
     
 
 @router.get("/admin/topics/{topic_id}")
@@ -178,23 +75,10 @@ async def topic_details(
     request: Request,
     topic_id: int
 ):
-    async with (await get_connection_pool()).acquire() as conn:
-        topic = await conn.fetchrow(
-            """
-            SELECT * from web_topics
-            WHERE topic_id = $1
-            """,
-            topic_id
-        )
-        if not topic:
-            return templates.TemplateResponse("404.html", context={"request": request})
-        challenges = await conn.fetch(
-            """
-            SELECT * from web_challenges LEFT JOIN challenge_flags ON web_challenges.challenge_id = challenge_flags.challenge_id
-            WHERE topic_id = $1
-            """,
-            topic_id
-        )
+    topic = await get_web_topic_by_id(topic_id)
+    if not topic:
+        return templates.TemplateResponse("404.html", context={"request": request})
+    challenges = await get_web_challenges_by_topic(topic_id)
     return templates.TemplateResponse("admin/manage_challenges.html", context={"request": request, "active_page": "challenges", "topic": topic, "challenges": challenges})
 
 @router.post("/admin/topics/{topic_id}/challenges/add")
@@ -488,41 +372,12 @@ async def delete_challenge(
     topic_id: int,
     challenge_id: int=Form(...),
 ):
-    docker_image_name = None
-    try:
-        async with (await get_connection_pool()).acquire() as conn:
-            #validate topic_id
-            topic = await conn.fetchrow("SELECT * FROM web_topics WHERE topic_id = $1 ", topic_id)
-            if not topic:
-                return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"details": "Topic not found"})
-            #validate challenge_id
-            challenge = await conn.fetchrow("SELECT * FROM web_challenges WHERE challenge_id = $1 AND topic_id = $2", challenge_id, topic_id)
-            if not challenge:
-                return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"details": "Challenge not found"})
-            # get docker image info to delete 
-            docker_image = await conn.fetchrow(
-                "SELECT image_name FROM docker_images WHERE challenge_id = $1",
-                challenge_id
-            )
-            if docker_image:
-                docker_image_name = docker_image["image_name"]
-                try:
-                    docker_client.images.remove(docker_image_name, force=True)
-                except Exception:
-                    pass
-
-            # delete 
-            async with conn.transaction():
-                # relevant data will be deleted automatically due to ON DELETE CASCADE
-                await conn.execute(
-                    "DELETE FROM web_challenges WHERE challenge_id = $1", challenge_id
-                )
-            
-            return JSONResponse(status_code=status.HTTP_200_OK, content={"details": "Challenge deleted successfully"})
-    except HTTPException as e:
-        return JSONResponse(status_code=e.status_code, content={"details": e.detail})
-    except Exception as e:
-        return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content={"details": f"Error deleting challenge: {str(e)}"})
+    if await delete_challenge_from_topic(challenge_id) is False:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"details": "Error deleting challenge, maybe challenge not found or has related data"}
+        )
+    return JSONResponse(status_code=status.HTTP_200_OK, content={"details": "Challenge deleted successfully"})
 
 @router.get("/admin/topics/{topic_id}/challenges/{challenge_id}")
 async def challenge_details(
@@ -530,48 +385,11 @@ async def challenge_details(
     topic_id: int,
     challenge_id: int
 ):
-    async with (await get_connection_pool()).acquire() as conn:
-        # Lấy thông tin topic
-        topic = await conn.fetchrow(
-            """
-            SELECT * FROM web_topics
-            WHERE topic_id = $1
-            """,
-            topic_id
-        )
-        if not topic:
-            return templates.TemplateResponse("404.html", context={"request": request})
+    topic, challenge, docker_image = await get_challenge_details(challenge_id, topic_id)
 
-        # Lấy thông tin challenge và join với challenge_flags và docker_images
-        challenge = await conn.fetchrow(
-            """
-            SELECT 
-                wc.*,
-                cf.correct_flag,
-                di.image_name,
-                di.ports,
-                di.run_parameters,
-                di.created_at AS docker_created_at
-            FROM web_challenges wc
-            LEFT JOIN challenge_flags cf ON wc.challenge_id = cf.challenge_id
-            LEFT JOIN docker_images di ON wc.challenge_id = di.challenge_id
-            WHERE wc.topic_id = $1 AND wc.challenge_id = $2
-            """,
-            topic_id, challenge_id
-        )
-        if not challenge:
-            return templates.TemplateResponse("404.html", context={"request": request})
-
-        # Chuẩn bị dữ liệu docker_image (nếu có)
-        docker_image = None
-        if challenge.get("image_name"):
-            docker_image = {
-                "image_name": challenge["image_name"] or "N/A",
-                "ports": challenge["ports"] or "N/A",
-                "run_parameters": challenge["run_parameters"] or "N/A",
-                "created_at": challenge["docker_created_at"] or "N/A"
-            }
-
+    if not topic or not challenge or not docker_image:
+        return templates.TemplateResponse("404.html", context={"request": request})
+    
     return templates.TemplateResponse(
         "admin/manage_challenge_detail.html",
         context={

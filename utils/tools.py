@@ -3,9 +3,141 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import smtplib
 from fastapi import HTTPException
-from config import SENDER_EMAIL, SENDER_PASSWORD, SMTP_SERVER, SMTP_PORT, DOMAIN
+from config import SENDER_EMAIL, SENDER_PASSWORD, SMTP_SERVER, SMTP_PORT, DOMAIN, docker_client, scheduler, traefik_container
 from dateutil.parser import parse
 import pytz
+import json
+from database.dbmain import redis_client
+from datetime import datetime, timedelta
+
+async def delete_web_container_job(container_id: str, user_id: str):
+    try:
+        container = docker_client.containers.get(container_id)
+        network_name = f"web_lab_user_{user_id}"
+        container.stop()
+        container.remove()
+        await redis_client.delete(f"user:container:{user_id}")
+        await redis_client.delete(f"user:lab_net:{user_id}")
+        docker_client.networks.get(network_name).remove()
+        print("delete web container triggered")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete container: {str(e)}")
+
+def schedule_web_container_deletion(container_id: str, user_id: str, delay: int):
+    try:
+        job = scheduler.add_job(
+            delete_web_container_job,
+            'date',
+            run_date=datetime.now() + timedelta(seconds=delay),
+            args=[container_id, user_id],
+            id=f"delete_container_{container_id}",
+            replace_existing=True
+        )
+        return job.id
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to schedule container deletion: {str(e)}")
+
+async def delete_ddos_container_jobs(user_id: str):
+    try:
+        network_name = f"ddos_net_user_{user_id}"
+
+        # get ddos-target container id and botnets from redis first before deleting
+        botnets = await redis_client.get(f"user_botnets:{user_id}")
+        print(f"botnets: {botnets}")
+        container_id = await redis_client.get(f"user_containers:{user_id}")
+        print(f"container_id: {container_id}")
+        if botnets:
+            bot_ids = json.loads(botnets)
+            for bot in bot_ids:
+                try:
+                    bot_container = docker_client.containers.get(bot["container_id"])
+                    print(f"bot container: {bot_container}")
+                    container_user_id = bot_container.labels.get("user_id")
+                    if container_user_id != user_id:
+                        continue
+                    bot_container.stop()
+                    bot_container.remove()
+                except Exception as e:
+                    print(f"Failed to remove bot {bot['bot_id']}: {str(e)}")
+            await redis_client.delete(f"user_botnets:{user_id}")
+
+       
+        if not container_id:
+            async for key in redis_client.scan_iter(f"attack:*"):
+                attack_data = await redis_client.get(key)
+                if attack_data:
+                    attack = json.loads(attack_data)
+                    if attack["user_id"] == user_id:
+                        await redis_client.delete(key)
+            return {"message": "No target running"}
+
+        try:
+            container = docker_client.containers.get(container_id.decode())
+            container_user_id = container.labels.get("user_id")
+            if container_user_id != user_id:
+                print(f"container_user_id: {container_user_id} and user_id: {user_id}")
+                raise HTTPException(status_code=403, detail="Target does not belong to this user")
+            container.stop()
+            container.remove()
+            await redis_client.delete(f"user_containers:{user_id}")
+        except Exception as e:
+            print(f"Failed to stop target: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Failed to stop target: {str(e)}")
+        print("delete target success")
+
+
+        # Xóa thông tin attack
+        async for key in redis_client.scan_iter(f"attack:*"):
+            attack_data = await redis_client.get(key)
+            if attack_data:
+                attack = json.loads(attack_data)
+                if attack["user_id"] == user_id:
+                    await redis_client.delete(key)
+
+       # Delete the network
+        try:
+            network = docker_client.networks.get(network_name)
+            try:
+                network.disconnect(traefik_container)
+            except Exception as e:
+                print(f"Failed to disconnect traefik from network: {str(e)}")
+            network.reload()
+            for container in network.containers:
+                try:
+                    network.disconnect(container)
+                    print(f"Disconnected container {container.id} from network {network_name}")
+                except Exception as e:
+                    print(f"Failed to disconnect container {container.id}: {str(e)}")
+            network.remove()
+        except Exception as e:
+            print(f"Failed to stop network: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Failed to stop network: {str(e)}")
+        print("delete network success")
+        print("delete web container triggered")
+        return True
+    except Exception as e:
+        print(f"Error during DDoS cleanup for user {user_id}: {str(e)}")
+        # await redis_client.delete(f"user_containers:{user_id}")
+        # await redis_client.delete(f"user_botnets:{user_id}")
+        return False
+
+def schedule_ddos_containers_deletion(user_id: str, delay: int):
+    try:
+
+        run_date = datetime.now() + timedelta(seconds=delay)
+        job = scheduler.add_job(
+            delete_ddos_container_jobs,
+            'date',
+            run_date=run_date,
+            args=[user_id],
+            id=f"delete_ddos_containers_{user_id}",
+            replace_existing=True
+        )
+        return job.id
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=f"Failed to schedule DDoS containers deletion: {str(e)}")
+
 
 def is_valid_email(email: str) -> bool:
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'

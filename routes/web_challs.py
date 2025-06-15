@@ -1,8 +1,9 @@
 from fastapi import Request, APIRouter, status, HTTPException
 from fastapi.responses import JSONResponse
-from config import templates, docker_client, traefik_container, DOMAIN
+from config import templates, docker_client, traefik_container, DOMAIN, scheduler
 from database.web_challs import get_all_web_topics, get_topic_details, get_web_lab_list, get_web_lab_details, get_docker_image, get_correct_flag
 from database.dbmain import redis_client, get_connection_pool
+from utils.tools import delete_web_container_job, schedule_web_container_deletion
 import json
 import time
 import uuid
@@ -131,6 +132,8 @@ async def access_lab(request: Request, topic_slug, lab_slug):
             network.connect(traefik_container)
         except Exception:
             pass
+        
+        await schedule_web_container_deletion(container.id, user_id, 3600)
 
         container_data = {
             "container_id": container.id,
@@ -214,31 +217,12 @@ async def submit_flag(request: Request, topic_slug: str, lab_slug: str, body: di
                 user_id, challenge['challenge_id'], True
             )
 
+        # Hủy lịch xóa container nếu có
+        job_id = f"delete_container_{container_data['container_id']}"
+        if scheduler.get_job(job_id):
+            scheduler.remove_job(job_id)
         # Xóa container và dữ liệu Redis
-        try:
-            # Lấy container từ Docker
-            container_id = container_data["container_id"]
-            container = docker_client.containers.get(container_id)
-            
-            # Dừng và xóa container
-            container.stop()
-            container.remove()
-            print(f"Container {container_id} has been stopped and removed.")
-            
-            # Xóa dữ liệu trong Redis
-            await redis_client.delete(f"user:container:{user_id}")
-            
-            # Xóa network cô lập nếu cần
-            network_name = f"web_lab_user_{user_id}"
-            try:
-                network = docker_client.networks.get(network_name)
-                network.remove()
-                print(f"Network {network_name} has been removed.")
-            except Exception as network_err:
-                print(f"Failed to remove network {network_name}: {network_err}")
-                
-        except Exception as cleanup_err:
-            print(f"Error during cleanup: {cleanup_err}")
+        await delete_web_container_job(container_data["container_id"], user_id)
 
         return {"detail": "Flag correct! Challenge solved!"}
     except HTTPException as e:

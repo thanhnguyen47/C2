@@ -1,6 +1,6 @@
 from fastapi import Request, APIRouter, HTTPException, status, Form, Response
 from fastapi.responses import JSONResponse
-from config import templates, C2_URL, AttackRequest, AttackResponse, SUPPORTED_ATTACK_TYPES, docker_client, traefik_container, DOMAIN
+from config import templates, C2_URL, AttackRequest, AttackResponse, SUPPORTED_ATTACK_TYPES, docker_client, traefik_container, DOMAIN, scheduler
 from database.bot import get_bot, get_bot_info, get_logs
 from database.dbmain import get_connection_pool, redis_client
 from sse_starlette import EventSourceResponse
@@ -8,10 +8,12 @@ import json
 import random
 from datetime import datetime, timezone, timedelta
 import uuid
+from utils.tools import schedule_ddos_containers_deletion, delete_ddos_container_jobs
 
 router = APIRouter()
 
-BOT_TTL = 3600
+BOT_TTL = 1800  # 30 minutes
+REDIS_DELTA = 10
 
 @router.get("/ddos")
 async def ddos_simulation(request: Request):
@@ -74,7 +76,7 @@ async def ddos_simulation(request: Request):
 async def start_target(request: Request, bot_count: int = Form(1)):
     user_id = str(request.state.user["id"])
     network_name = f"ddos_net_user_{user_id}"
-
+    print(bot_count)
     existing_target = await redis_client.get(f"user_containers:{user_id}")
     existing_botnets = await redis_client.get(f"user_botnets:{user_id}")
 
@@ -85,6 +87,7 @@ async def start_target(request: Request, bot_count: int = Form(1)):
     # create new isolating network for user
     existing_networks = docker_client.networks.list(names=[network_name])
     if not existing_networks:
+        print("a1")
         docker_client.networks.create(
             name=network_name,
             driver="bridge",
@@ -94,6 +97,7 @@ async def start_target(request: Request, bot_count: int = Form(1)):
     # create new container
     target_domain=f"{uuid.uuid4()}.{DOMAIN}"
     try:
+        print("a2")
         container = docker_client.containers.run(
             "ddos-target",
             detach=True,
@@ -113,20 +117,23 @@ async def start_target(request: Request, bot_count: int = Form(1)):
             # network_aliases=["ddos-target"]
         )
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=f"Failed to start target: {str(e)}")
 
     network = docker_client.networks.get(network_name)
     try:
         network.connect(traefik_container)
     except Exception:
+        print("a4")
         pass
 
     # save container id into Redis
-    await redis_client.setex(f"user_containers:{user_id}", BOT_TTL, container.id)
+    await redis_client.setex(f"user_containers:{user_id}", BOT_TTL + REDIS_DELTA, container.id)
 
     c2_network = docker_client.networks.get("ubuntu_c2-network")
     bot_ids = []
     bot_count = min(bot_count, 5)
+    bot_count = max(bot_count, 1)  # Ensure at least 1 bot
     for i in range(bot_count):
         bot_id = f"{user_id}_bot_{i}"
         device_type = random.choice(["IoT", "PC", "SERVER", "Mobile"])
@@ -157,8 +164,11 @@ async def start_target(request: Request, bot_count: int = Form(1)):
             continue
 
     # save bot list into Redis
-    await redis_client.setex(f"user_botnets:{user_id}", BOT_TTL, json.dumps(bot_ids))
-
+    await redis_client.setex(f"user_botnets:{user_id}", BOT_TTL + REDIS_DELTA, json.dumps(bot_ids))
+    print("a5")
+    # schedule deletion of containers after BOT_TTL seconds
+    schedule_ddos_containers_deletion(user_id, BOT_TTL)
+    print("a6")
     # Create pending attack record
     attack_id = str(uuid.uuid4())
     target_url = f"https://{target_domain}"
@@ -178,85 +188,26 @@ async def start_target(request: Request, bot_count: int = Form(1)):
         "end_time": None,
         "bot_count": bot_count
     }
-    await redis_client.setex(f"attack:{attack_id}", BOT_TTL, json.dumps(attack_info))
-
+    await redis_client.setex(f"attack:{attack_id}", BOT_TTL + REDIS_DELTA, json.dumps(attack_info))
+    print("a7")
     return {"target": target_url}
 
 @router.post("/ddos/stop-target")
 async def stop_target(request: Request):
     user_id = str(request.state.user["id"])
-    network_name = f"ddos_net_user_{user_id}"
 
-    botnets = await redis_client.get(f"user_botnets:{user_id}")
-    if botnets:
-        bot_ids = json.loads(botnets)
-        for bot in bot_ids:
-            try:
-                bot_container = docker_client.containers.get(bot["container_id"])
-                container_user_id = bot_container.labels.get("user_id")
-                if container_user_id != user_id:
-                    continue
-                bot_container.stop()
-                bot_container.remove()
-            except Exception as e:
-                print(f"Failed to remove bot {bot['bot_id']}: {str(e)}")
-        await redis_client.delete(f"user_botnets:{user_id}")
-    print("delete botnet success")
+    # Hủy lịch xóa nếu tồn tại
+    job_id = f"delete_ddos_containers_{user_id}"
+    if scheduler.get_job(job_id):
+        scheduler.remove_job(job_id)
+        print(f"Removed scheduled job {job_id} for user {user_id}")
 
-    # Stop and delete the target
-    container_id = await redis_client.get(f"user_containers:{user_id}")
-    if not container_id:
-        async for key in redis_client.scan_iter(f"attack:*"):
-            attack_data = await redis_client.get(key)
-            if attack_data:
-                attack = json.loads(attack_data)
-                if attack["user_id"] == user_id:
-                    await redis_client.delete(key)
-        return {"message": "No target running"}
-
-    try:
-        container = docker_client.containers.get(container_id.decode())
-        container_user_id = container.labels.get("user_id")
-        if container_user_id != user_id:
-            raise HTTPException(status_code=403, detail="Target does not belong to this user")
-        container.stop()
-        container.remove()
-        await redis_client.delete(f"user_containers:{user_id}")
-    except Exception as e:
-        print(f"Failed to stop target: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to stop target: {str(e)}")
-    print("delete target success")
-
-    # Delete any lingering attack info
-    async for key in redis_client.scan_iter(f"attack:*"):
-        attack_data = await redis_client.get(key)
-        if attack_data:
-            attack = json.loads(attack_data)
-            if attack["user_id"] == user_id:
-                await redis_client.delete(key)
-    print("delete attack info success")
-
-    # Delete the network
-    try:
-        network = docker_client.networks.get(network_name)
-        try:
-            network.disconnect(traefik_container)
-        except Exception as e:
-            print(f"Failed to disconnect traefik from network: {str(e)}")
-        network.reload()
-        for container in network.containers:
-            try:
-                network.disconnect(container)
-                print(f"Disconnected container {container.id} from network {network_name}")
-            except Exception as e:
-                print(f"Failed to disconnect container {container.id}: {str(e)}")
-        network.remove()
-    except Exception as e:
-        print(f"Failed to stop network: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to stop network: {str(e)}")
-    print("delete network success")
-
-    return {"message": "target stopped and removed"}
+    # Xóa container và botnet
+    success = await delete_ddos_container_jobs(user_id)
+    if success:
+        return {"message": "target stopped and removed"}
+    else:
+        raise HTTPException(status_code=500, detail="Failed to stop target and clean up")
 
 @router.post("/ddos/attack-target", response_model=AttackResponse)
 async def initiate_ddos_attack(request: Request, attack_request: AttackRequest):
@@ -335,7 +286,7 @@ async def initiate_ddos_attack(request: Request, attack_request: AttackRequest):
                 continue
 
         # Save the queues
-        await redis_client.setex(f"user_queues:{user_id}", BOT_TTL, json.dumps(queue_keys))
+        await redis_client.setex(f"user_queues:{user_id}", BOT_TTL + REDIS_DELTA, json.dumps(queue_keys))
 
         # Update attack info
         attack_info = {
@@ -354,7 +305,7 @@ async def initiate_ddos_attack(request: Request, attack_request: AttackRequest):
             "end_time": None,
             "bot_count": attack_info["bot_count"]
         }
-        await redis_client.setex(f"attack:{existing_attack_id}", BOT_TTL, json.dumps(attack_info))
+        await redis_client.setex(f"attack:{existing_attack_id}", BOT_TTL + REDIS_DELTA, json.dumps(attack_info))
 
         # Initialize report for each bot in Redis
         for bot_id in bot_id_list:
@@ -366,7 +317,7 @@ async def initiate_ddos_attack(request: Request, attack_request: AttackRequest):
                 "error_message": None,
                 "last_updated": datetime.now(timezone.utc).isoformat()
             }
-            await redis_client.setex(report_key, BOT_TTL, json.dumps(bot_report))
+            await redis_client.setex(report_key, BOT_TTL + REDIS_DELTA, json.dumps(bot_report))
 
         return AttackResponse(
             attack_id=existing_attack_id,

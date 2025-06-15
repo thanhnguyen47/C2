@@ -5,6 +5,8 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, HttpUrl
 from typing import Optional, Dict
 import docker 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+# from apscheduler.triggers.date import DateTrigger
 
 load_dotenv()
 DB_NAME=os.getenv('DB_NAME')
@@ -31,7 +33,7 @@ TINYMCE_API_KEY = os.getenv('TINYMCE_API_KEY')
 
 docker_client = docker.from_env()
 traefik_container = docker_client.containers.get("ubuntu-traefik-1")
-
+scheduler = AsyncIOScheduler()
 
 class CustomTemplates(Jinja2Templates):
     def TemplateResponse(self, name: str, context: dict, *args, **kwargs):

@@ -3,32 +3,23 @@ from fastapi.responses import Response, JSONResponse
 from config import templates
 from utils.tools import validate_date_of_birth, validate_phone_number, validate_timezone, is_valid_email, is_strong_password
 import re
-from pathlib import Path
-import os
 from PIL import Image
+import os
 from io import BytesIO
 import uuid
-from database.dbmain import get_connection_pool
 from database.auth import hash_passwd
+from database.dbmain import get_connection_pool
 from datetime import date
+from database.admin.manage_users import get_users, add_user, UPLOAD_FOLDER, ALLOWED_EXTENSIONS, MAX_FILE_SIZE, delete_user
+
 
 router = APIRouter()
 
-ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
-MAX_FILE_SIZE = 2 * 1024 * 1024  # 2MB
-UPLOAD_FOLDER = Path("uploads")
-
 @router.get("/admin/users")
 async def get_manage_users(request: Request):
-    async with (await get_connection_pool()).acquire() as conn:
-        users = await conn.fetch(
-            """
-            SELECT u.id, u.username, u.fullname, u.email, u.role, ui.date_of_birth, ui.phone_number, ui.country, ui.timezone, ui.website, ui.avatar_url
-            FROM c2_users u
-            LEFT JOIN c2_user_info ui ON u.id = ui.user_id
-            ORDER BY u.id
-            """
-        )
+    users = await get_users()
+    if users is None:
+        return templates.TemplateResponse("404.html", context={"request": request})
     return templates.TemplateResponse("admin/manage_users.html", context={'request': request, 'active_page': 'users', 'users': users, "today": date.today().isoformat()})
 
 @router.post("/admin/users/add")
@@ -57,7 +48,7 @@ async def create_new_user(request: Request,
         if not is_strong_password(password):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số"
+                detail="Password must be at least 8 characters, including uppercase, lowercase and numbers"
             )
         validated_dob = validate_date_of_birth(date_of_birth)
         validated_timezone = validate_timezone(timezone)
@@ -127,41 +118,13 @@ async def create_new_user(request: Request,
         except Exception as e:
             return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content={"detail": f"Failed to process avatar: {str(e)}"})
 
-    # check existing username or email
-    async with (await get_connection_pool()).acquire() as conn:
-        # Kiểm tra username và email trùng lặp trong c2_users
-        existing_user = await conn.fetchrow(
-            "SELECT username, email FROM c2_users WHERE username = $1 OR email = $2",
-            username, email
+    # add new user to database
+    if await add_user(username, password, fullname, email, role, validated_dob, validated_phone, country, validated_timezone, website, avatar_url) is False:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"detail": "Register failed."}
         )
-        if existing_user:
-            raise HTTPException(status_code=400, detail="Username or email is existed")
 
-        # Kiểm tra username và email trùng lặp trong pending_users
-        existing_pending = await conn.fetchrow(
-            "SELECT username, email FROM pending_users WHERE username = $1 OR email = $2",
-            username, email
-        )
-        if existing_pending:
-            raise HTTPException(status_code=400, detail="Username or email is waiting for verifying")
-        
-        # Mã hóa mật khẩu
-        hashed_passwd = hash_passwd(password)
-        uid = await conn.fetchrow(
-            """
-            INSERT INTO c2_users (fullname, username, email, hashed_passwd, role)
-            VALUES ($1, $2, $3, $4, $5) RETURNING id
-            """,
-            fullname, username, email, hashed_passwd, role
-        )
-        uid = uid["id"]
-        await conn.execute(
-            """
-            INSERT INTO c2_user_info (user_id, date_of_birth, country, timezone, phone_number, website, avatar_url)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
-            """,
-            uid, validated_dob, country, validated_timezone, validated_phone, website, avatar_url
-        )
     return JSONResponse(
         status_code=status.HTTP_201_CREATED,
         content={"detail": "Register successful"}
@@ -178,7 +141,6 @@ async def delete_user(request: Request, user_id: str=Form(...)):
             raise ValueError()
             
     except HTTPException as e:
-        print('fetch here')
         return JSONResponse(status_code=e.status_code, content={"detail": e.detail})
     except ValueError:
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"detail": "invalid user id"})
@@ -188,42 +150,16 @@ async def delete_user(request: Request, user_id: str=Form(...)):
     if uid == user_id:
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"detail": "not allow to self-delete"})
     
-    async with (await get_connection_pool()).acquire() as conn:
-        # check existing user
-        user = await conn.fetchrow(
-            """
-            SELECT c2_users.id, c2_users.username, c2_user_info.avatar_url
-            FROM c2_users
-            LEFT JOIN c2_user_info ON c2_users.id = c2_user_info.user_id
-            WHERE c2_users.id=$1
-            """,
-            user_id
+    if await delete_user(user_id) is False:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"detail": "User delete failed."}
         )
-        if not user:
-            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"detail":"user not found"})
-        
-        # delete avatar if there is
-        avatar_url =user["avatar_url"]
-        if avatar_url:
-            avatar_path = os.path.join(UPLOAD_FOLDER, avatar_url.split("/")[-1])
-            if os.path.exists(avatar_path):
-                try:
-                    os.remove(avatar_path)
-                except Exception as e:
-                    pass 
-        
-        # after all, delete user on database in table c2_users, relevent tables will be automated deleting by ON DELETE CASCADE
-        try:
-            await conn.execute("DELETE FROM c2_users WHERE id = $1", user_id)
-            return JSONResponse(
-                status_code=status.HTTP_200_OK,
-                content={"detail": "User deleted successfully"}
-            )
-        except Exception as e:
-            return JSONResponse(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                content={"detail": f"Failed to delete user: {str(e)}"}
-            )
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"detail": "User deleted successfully"}
+    )
+
 
 @router.post("/admin/users/edit")
 async def edit_user(
