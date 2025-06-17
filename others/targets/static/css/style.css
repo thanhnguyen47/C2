@@ -1,0 +1,60 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    text-align: center;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 1200px; /* Điều chỉnh chiều rộng để phù hợp lưới 2x2 */
+    margin: 0 auto;
+}
+
+h1 {
+    color: #333;
+}
+
+p {
+    color: #666;
+    font-size: 18px;
+}
+
+.status {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.status-crashed {
+    color: #d9534f;
+    font-weight: bold;
+}
+
+/* Lưới 2x2 cho các biểu đồ */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 cột */
+    gap: 20px; /* Khoảng cách giữa các biểu đồ */
+    margin-top: 20px;
+}
+
+.chart-container {
+    background-color: #f9f9f9; /* Nền nhẹ để phân biệt */
+    border-radius: 5px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.chart-container h3 {
+    margin: 0 0 10px;
+    font-size: 16px; /* Giảm kích thước tiêu đề để tiết kiệm không gian */
+}
+
+canvas {
+    max-width: 100%;
+    height: 200px !important; /* Cố định chiều cao để tất cả biểu đồ vừa màn hình */
+}

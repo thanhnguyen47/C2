@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Request, Form, HTTPException, status
 from fastapi.responses import RedirectResponse, Response, JSONResponse, HTMLResponse
-from database.auth import verify_access_token, authenticate_user, generate_access_token, hash_passwd
+from database.auth import verify_access_token, authenticate_user, generate_access_token, hash_passwd, register_user, verify_account, send_reset_password_request
 from database.dbmain import get_connection_pool
 from config import templates
-from utils.tools import is_strong_password, is_valid_email, send_verification_email, send_reset_password_email
+from utils.tools import is_strong_password, is_valid_email
 import uuid
 from datetime import datetime, timedelta
 
@@ -52,97 +52,36 @@ async def register(
     email: str = Form(...),
     password: str = Form(...)
 ):
-    try:
-        # Kiểm tra trường không trống
-        if not all([fullname.strip(), username.strip(), email.strip(), password.strip()]):
-            raise HTTPException(status_code=400, detail="Tất cả các trường không được để trống")
+    # Kiểm tra trường không trống
+    if not all([fullname.strip(), username.strip(), email.strip(), password.strip()]):
+        raise HTTPException(status_code=400, detail="All fields are required")
 
-        # Kiểm tra định dạng email
-        if not is_valid_email(email):
-            raise HTTPException(status_code=400, detail="Email không hợp lệ")
+    # Kiểm tra định dạng email
+    if not is_valid_email(email):
+        raise HTTPException(status_code=400, detail="Email không hợp lệ")
 
-        # Kiểm tra độ mạnh mật khẩu
-        if not is_strong_password(password):
-            raise HTTPException(
-                status_code=400,
-                detail="Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số"
-            )
-
-        async with (await get_connection_pool()).acquire() as conn:
-            # Kiểm tra username và email trùng lặp trong c2_users
-            existing_user = await conn.fetchrow(
-                "SELECT username, email FROM c2_users WHERE username = $1 OR email = $2",
-                username, email
-            )
-            if existing_user:
-                raise HTTPException(status_code=400, detail="Username hoặc email đã tồn tại")
-
-            # Kiểm tra username và email trùng lặp trong pending_users
-            existing_pending = await conn.fetchrow(
-                "SELECT username, email FROM pending_users WHERE username = $1 OR email = $2",
-                username, email
-            )
-            if existing_pending:
-                raise HTTPException(status_code=400, detail="Username hoặc email đang chờ xác minh")
-
-            # Tạo mã xác minh và thời hạn
-            verification_token = str(uuid.uuid4())  # Tạo UUID ngẫu nhiên
-            token_expiry = datetime.utcnow() + timedelta(hours=1)  # Hết hạn sau 1 giờ
-
-            # Mã hóa mật khẩu
-            hashed_passwd = hash_passwd(password)
-
-            # Lưu vào pending_users
-            await conn.execute(
-                """
-                INSERT INTO pending_users (fullname, username, email, hashed_passwd, verification_token, token_expiry)
-                VALUES ($1, $2, $3, $4, $5, $6)
-                """,
-                fullname, username, email, hashed_passwd, verification_token, token_expiry
-            )
-
-            # Gửi email xác minh
-            await send_verification_email(email, verification_token)
-
-        return JSONResponse(
-            status_code=status.HTTP_201_CREATED,
-            content={"message": "Đăng ký thành công, vui lòng kiểm tra email để xác minh"}
+    # Kiểm tra độ mạnh mật khẩu
+    if not is_strong_password(password):
+        raise HTTPException(
+            status_code=400,
+            detail="Password must be at least 8 characters with upper, lower case and numbers."
         )
-    except HTTPException as e:
-        print(str(e))
-        return JSONResponse(status_code=e.status_code, content={"message": e.detail})
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"message": f"Lỗi server: {str(e)}"})
+
+    if await register_user(fullname, username, email, password) is False:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"message": "Register failed."}
+        )
+    return JSONResponse(
+        status_code=status.HTTP_201_CREATED,
+        content={"message": "Register successful. Please check your email to verify your account."}
+    )
 
 @router.get('/verify/{token}', response_class=HTMLResponse)
 async def verify_email(token: str):
-    try:
-        async with (await get_connection_pool()).acquire() as conn:
-            pending_user = await conn.fetchrow(
-                "SELECT * FROM pending_users WHERE verification_token = $1",
-                token
-            )
-            if not pending_user:
-                raise HTTPException(status_code=400, detail="Invalid verification token")
-
-            if datetime.utcnow() > pending_user["token_expiry"]:
-                await conn.execute("DELETE FROM pending_users WHERE verification_token = $1", token)
-                raise HTTPException(status_code=400, detail="Verification token has expired")
-
-            await conn.execute(
-                """
-                INSERT INTO c2_users (fullname, username, email, hashed_passwd, role)
-                VALUES ($1, $2, $3, $4, $5)
-                """,
-                pending_user["fullname"],
-                pending_user["username"],
-                pending_user["email"],
-                pending_user["hashed_passwd"],
-                pending_user["role"]
-            )
-
-            await conn.execute("DELETE FROM pending_users WHERE verification_token = $1", token)
-
+    
+        if await verify_account(token) is False:
+            return HTMLResponse(status_code=400, content="<h3>Invalid or expired verification token</h3>")
         return HTMLResponse(content=f"""
         <!DOCTYPE html>
         <html>
@@ -160,45 +99,17 @@ async def verify_email(token: str):
         </html>
         """, status_code=200)
 
-    except HTTPException as e:
-        return HTMLResponse(content=f"<h3>{e.detail}</h3>", status_code=e.status_code)
-    except Exception as e:
-        return HTMLResponse(content=f"<h3>Server Error: {str(e)}</h3>", status_code=500)
-
-
 @router.post("/forgot-password")
 async def forgot_password(email: str = Form(...)):
-    try:
-        async with (await get_connection_pool()).acquire() as conn:
-            # Kiểm tra email tồn tại
-            user = await conn.fetchrow("SELECT id, email FROM c2_users WHERE email = $1", email)
-            if not user:
-                raise HTTPException(status_code=404, detail="Email does not exist")
-
-            # Tạo token và thời hạn
-            token = str(uuid.uuid4())
-            expiry = datetime.utcnow() + timedelta(minutes=30)
-
-            # Xóa các token cũ (nếu cần)
-            await conn.execute("DELETE FROM password_reset_tokens WHERE user_id = $1", user["id"])
-
-            # Lưu token mới
-            await conn.execute(
-                "INSERT INTO password_reset_tokens (user_id, token, expiry) VALUES ($1, $2, $3)",
-                user["id"], token, expiry
-            )
-
-            # Gửi email reset
-            await send_reset_password_email(email, token)
-
+    if await send_reset_password_request(email) is False:
         return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content={"message": "Reset password email sent successfully"}
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"message": "Failed to send reset password email. Please check if the email is registered."}
         )
-    except HTTPException as e:
-        return JSONResponse(status_code=e.status_code, content={"message": e.detail})
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"message": f"Server error: {str(e)}"})
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"message": "Reset password email sent successfully"}
+    )
 
 @router.get('/reset-password/{token}', response_class=HTMLResponse)
 async def reset_password_page(token: str):

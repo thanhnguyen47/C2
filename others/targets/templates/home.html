@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DDoS Target</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>DDoS Target Server</h1>
+        <p>Status: <span class="status">Running</span></p>
+
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h3>Network I/O (bytes/s)</h3>
+                <canvas id="ioChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>CPU Usage (%)</h3>
+                <canvas id="cpuChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>RAM Usage (MB)</h3>
+                <canvas id="ramChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>Connections</h3>
+                <canvas id="connChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', filename='js/chart.js') }}"></script>
+    <script>
+        // Vẽ biểu đồ ban đầu với dữ liệu từ server
+        drawStaticCharts(
+            {{ timestamps | tojson }},
+            {{ bytes_io | tojson }},
+            {{ cpu_usage | tojson }},
+            {{ ram_usage | tojson }},
+            {{ connections | tojson }}
+        );
+
+        // Cập nhật thời gian thực qua SSE
+        const eventSource = new EventSource('/events');
+        eventSource.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            updateCharts(data);
+        };
+    </script>
+</body>
+</html>

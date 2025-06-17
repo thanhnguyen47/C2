@@ -7,7 +7,7 @@ import json
 
 router = APIRouter(prefix="/api/v1") # act as valid api
 
-# bot send its status (polling)
+# bot send its status (beaconing)
 @router.post("/beacon/{token}")
 async def report_status(token: str):
     async with (await get_connection_pool()).acquire() as conn:

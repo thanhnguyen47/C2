@@ -1,0 +1,60 @@
+# version: "3.9"
+
+services:
+  traefik:
+    image: traefik:v2.10
+    ports: 
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro # read-only mode
+      - ./traefik.yml:/traefik.yml
+      - ./letsencrypt:/letsencrypt
+    command:
+      - "--configFile=/traefik.yml"
+      - "--log.level=DEBUG"
+    environment:
+      - CLOUDFLARE_DNS_API_TOKEN=oZ_zKOHQqZMjiLS9pr9I4tU7wBugwzxnN3OGEGoh
+      - CLOUDFLARE_ZONE_API_TOKEN=oZ_zKOHQqZMjiLS9pr9I4tU7wBugwzxnN3OGEGoh
+    networks:
+      - c2-network
+  c2:
+    build: ./C2
+    ports:
+      - "8000:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - c2-network
+    depends_on:
+      - postgres
+      - redis
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.c2.rule=Host(`ctoacademy.io.vn`)"
+      - "traefik.http.routers.c2.entrypoints=websecure"
+      - "traefik.http.routers.c2.tls=true"
+      - "traefik.http.routers.c2.tls.certresolver=letsencrypt"
+      - "traefik.http.middlewares.c2-redirectscheme.redirectscheme.scheme=https"
+      - "traefik.http.routers.c2.middlewares=c2-redirectscheme@docker"
+      - "traefik.http.routers.c2.service=c2-service"
+      - "traefik.http.services.c2-service.loadbalancer.server.port=8000"
+  redis:
+    image: redis:latest
+    networks:
+      - c2-network
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=c2_user
+      - POSTGRES_PASSWORD=thanh
+      - POSTGRES_DB=c2_db
+    networks:
+      - c2-network
+networks:
+  c2-network:
+    driver: bridge
+
+volumes:
+  letsencrypt:
